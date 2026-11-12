@@ -1,0 +1,460 @@
+import type { PhotoKey } from "./images";
+
+export const INTERESTS = [
+  "history",
+  "beaches",
+  "diving",
+  "adventure",
+  "food",
+  "culture",
+  "family",
+  "relaxation",
+  "photography",
+  "architecture",
+] as const;
+export type Interest = (typeof INTERESTS)[number];
+
+export const ENVIRONMENTS = ["city", "river", "sea", "desert", "oasis"] as const;
+export type Environment = (typeof ENVIRONMENTS)[number];
+
+export const CATEGORIES = ["Ancient", "Islamic & Coptic", "Red Sea", "Desert & Oasis", "City life", "Nature"] as const;
+export type Category = (typeof CATEGORIES)[number];
+
+export type Attraction = { name: string; note: string };
+
+export type Destination = {
+  slug: string;
+  name: string;
+  region: string;
+  lat: number;
+  lng: number;
+  category: Category;
+  environment: Environment;
+  /** 0–3: how strongly this place serves each interest */
+  interests: Partial<Record<Interest, number>>;
+  /** Cheapest style that works well here, 1 = backpacker … 4 = luxury */
+  minBudgetLevel: 1 | 2 | 3 | 4;
+  idealDays: [number, number];
+  hiddenGem: boolean;
+  tagline: string;
+  summary: string;
+  attractions: Attraction[];
+  bestMonths: number[]; // 1-12
+  photo: PhotoKey | null;
+  passportFact: string;
+  photoTip: { spot: string; light: string };
+};
+
+export const destinations: Destination[] = [
+  {
+    slug: "cairo",
+    name: "Cairo",
+    region: "Greater Cairo",
+    lat: 30.0444,
+    lng: 31.2357,
+    category: "City life",
+    environment: "city",
+    interests: { history: 2, food: 3, culture: 3, architecture: 3, photography: 2, family: 1 },
+    minBudgetLevel: 1,
+    idealDays: [2, 4],
+    hiddenGem: false,
+    tagline: "A thousand minarets and a city that never sleeps",
+    summary:
+      "Africa's largest city layers medieval mosques, Coptic churches, grand belle-époque boulevards and late-night street food along the Nile.",
+    attractions: [
+      { name: "Al-Muizz Street", note: "Historic Cairo's open-air museum of Fatimid and Mamluk architecture" },
+      { name: "The Citadel", note: "Salah al-Din's fortress with the Mosque of Muhammad Ali" },
+      { name: "Coptic Cairo", note: "The Hanging Church and Ben Ezra Synagogue within Roman walls" },
+      { name: "Khan el-Khalili", note: "A bazaar trading since the 14th century" },
+      { name: "Al-Azhar Park", note: "Green hilltop gardens with sunset views over the old city" },
+    ],
+    bestMonths: [10, 11, 12, 1, 2, 3, 4],
+    photo: "cairo",
+    passportFact: "Historic Cairo is a UNESCO World Heritage Site, inscribed in 1979.",
+    photoTip: { spot: "Al-Azhar Park terraces", light: "Last hour before sunset, when the minarets turn gold" },
+  },
+  {
+    slug: "giza",
+    name: "Giza",
+    region: "Giza",
+    lat: 29.9792,
+    lng: 31.1342,
+    category: "Ancient",
+    environment: "desert",
+    interests: { history: 3, photography: 3, family: 3, architecture: 3, culture: 1 },
+    minBudgetLevel: 1,
+    idealDays: [1, 2],
+    hiddenGem: false,
+    tagline: "The last standing wonder of the ancient world",
+    summary:
+      "The Great Pyramid of Khufu, the Sphinx and the new Grand Egyptian Museum sit within a few kilometres of each other on the western edge of Cairo.",
+    attractions: [
+      { name: "Great Pyramid of Khufu", note: "Built around 2560 BCE, the largest of the three pyramids" },
+      { name: "The Great Sphinx", note: "Carved from the bedrock of the plateau" },
+      { name: "Grand Egyptian Museum", note: "Home to the complete Tutankhamun collection" },
+      { name: "Panorama viewpoint", note: "The classic view of all nine pyramids on the plateau" },
+    ],
+    bestMonths: [10, 11, 12, 1, 2, 3],
+    photo: "giza",
+    passportFact: "The Great Pyramid was the tallest human-made structure on Earth for nearly 4,000 years.",
+    photoTip: { spot: "Panorama viewpoint", light: "Opening time in the morning, before haze and crowds" },
+  },
+  {
+    slug: "saqqara",
+    name: "Saqqara & Dahshur",
+    region: "Giza",
+    lat: 29.8713,
+    lng: 31.2165,
+    category: "Ancient",
+    environment: "desert",
+    interests: { history: 3, architecture: 3, photography: 2, adventure: 1 },
+    minBudgetLevel: 1,
+    idealDays: [1, 1],
+    hiddenGem: true,
+    tagline: "Where pyramid-building began",
+    summary:
+      "The Step Pyramid of Djoser is the oldest large stone building in Egypt. Nearby Dahshur has the Bent and Red Pyramids, often with almost no other visitors.",
+    attractions: [
+      { name: "Step Pyramid of Djoser", note: "Designed by Imhotep for King Djoser" },
+      { name: "Imhotep Museum", note: "Finds from the Saqqara necropolis" },
+      { name: "Bent Pyramid", note: "Its changing angle shows engineers learning as they built" },
+      { name: "Red Pyramid", note: "The first true smooth-sided pyramid, which you can enter" },
+    ],
+    bestMonths: [10, 11, 12, 1, 2, 3],
+    photo: "saqqara",
+    passportFact: "Djoser's Step Pyramid is often described as the world's oldest large-scale cut-stone building.",
+    photoTip: { spot: "South court of the Djoser complex", light: "Mid-morning side light on the steps" },
+  },
+  {
+    slug: "luxor",
+    name: "Luxor",
+    region: "Upper Egypt",
+    lat: 25.6872,
+    lng: 32.6396,
+    category: "Ancient",
+    environment: "river",
+    interests: { history: 3, architecture: 3, photography: 3, culture: 2, adventure: 1 },
+    minBudgetLevel: 1,
+    idealDays: [2, 4],
+    hiddenGem: false,
+    tagline: "The world's greatest open-air museum",
+    summary:
+      "Ancient Thebes: the temples of Karnak and Luxor on the east bank, and the royal tombs of the Valley of the Kings across the Nile on the west bank.",
+    attractions: [
+      { name: "Karnak Temple", note: "A vast temple complex built over some 2,000 years" },
+      { name: "Valley of the Kings", note: "Rock-cut tombs of New Kingdom pharaohs" },
+      { name: "Temple of Hatshepsut", note: "Terraced temple beneath the cliffs at Deir el-Bahari" },
+      { name: "Luxor Temple", note: "Beautifully lit after dark" },
+    ],
+    bestMonths: [10, 11, 12, 1, 2, 3],
+    photo: "luxor",
+    passportFact: "Ancient Thebes with its Necropolis became a UNESCO World Heritage Site in 1979.",
+    photoTip: { spot: "West bank balloon flights or Karnak hypostyle hall", light: "Sunrise for balloons; low afternoon light in Karnak" },
+  },
+  {
+    slug: "aswan",
+    name: "Aswan",
+    region: "Upper Egypt",
+    lat: 24.0889,
+    lng: 32.8998,
+    category: "Nature",
+    environment: "river",
+    interests: { relaxation: 3, culture: 3, history: 2, photography: 3, family: 2 },
+    minBudgetLevel: 1,
+    idealDays: [2, 3],
+    hiddenGem: false,
+    tagline: "The slow, golden heart of the Nile",
+    summary:
+      "Granite islands, white-sailed feluccas and Nubian villages painted in bright colours make Aswan Egypt's most relaxed river city.",
+    attractions: [
+      { name: "Philae Temple", note: "Temple of Isis, moved stone by stone to Agilkia Island" },
+      { name: "Nubian villages", note: "Colourful homes and Nubian hospitality on the west bank" },
+      { name: "Felucca sailing", note: "An hour on the water at sunset" },
+      { name: "Elephantine Island", note: "Ancient ruins and a Nubian village" },
+    ],
+    bestMonths: [11, 12, 1, 2],
+    photo: "aswan",
+    passportFact: "Philae Temple was relocated in the 1970s during the UNESCO Nubia campaign.",
+    photoTip: { spot: "A felucca near Elephantine Island", light: "Sunset, when the west-bank dunes glow" },
+  },
+  {
+    slug: "abu-simbel",
+    name: "Abu Simbel",
+    region: "Upper Egypt",
+    lat: 22.3372,
+    lng: 31.6258,
+    category: "Ancient",
+    environment: "desert",
+    interests: { history: 3, architecture: 3, photography: 3 },
+    minBudgetLevel: 2,
+    idealDays: [1, 1],
+    hiddenGem: false,
+    tagline: "Ramesses II, carved into a mountain",
+    summary:
+      "Two rock temples on Lake Nasser, moved in the 1960s to save them from the rising water of the High Dam. Usually visited as a day trip from Aswan.",
+    attractions: [
+      { name: "Great Temple of Ramesses II", note: "Four colossal seated statues on the facade" },
+      { name: "Temple of Nefertari", note: "Dedicated to Hathor and Ramesses' queen" },
+      { name: "Sun Festival", note: "Sunlight reaches the inner sanctuary twice a year" },
+    ],
+    bestMonths: [11, 12, 1, 2],
+    photo: "abuSimbel",
+    passportFact: "The whole temple complex was cut into blocks and reassembled 65 metres higher.",
+    photoTip: { spot: "In front of the Great Temple", light: "Early morning, when the sun lights the facade" },
+  },
+  {
+    slug: "alexandria",
+    name: "Alexandria",
+    region: "Mediterranean",
+    lat: 31.2001,
+    lng: 29.9187,
+    category: "City life",
+    environment: "sea",
+    interests: { history: 2, food: 3, culture: 3, architecture: 2, relaxation: 1, photography: 2 },
+    minBudgetLevel: 1,
+    idealDays: [1, 3],
+    hiddenGem: false,
+    tagline: "Egypt's Mediterranean muse",
+    summary:
+      "Founded by Alexander the Great, Alexandria mixes Greco-Roman ruins, a long seaside Corniche, old cafés and some of Egypt's best seafood.",
+    attractions: [
+      { name: "Bibliotheca Alexandrina", note: "A modern library honouring the ancient one" },
+      { name: "Citadel of Qaitbay", note: "15th-century fort near the site of the Pharos lighthouse" },
+      { name: "Catacombs of Kom el-Shoqafa", note: "Roman-era tombs mixing Egyptian and Greek styles" },
+      { name: "The Corniche", note: "A seafront promenade for an evening walk" },
+    ],
+    bestMonths: [4, 5, 6, 9, 10],
+    photo: "alexandria",
+    passportFact: "Alexandria was founded by Alexander the Great in 331 BCE.",
+    photoTip: { spot: "Qaitbay Citadel from the Corniche", light: "Blue hour after sunset" },
+  },
+  {
+    slug: "siwa",
+    name: "Siwa Oasis",
+    region: "Western Desert",
+    lat: 29.2032,
+    lng: 25.5195,
+    category: "Desert & Oasis",
+    environment: "oasis",
+    interests: { relaxation: 3, adventure: 2, culture: 3, photography: 3 },
+    minBudgetLevel: 2,
+    idealDays: [3, 4],
+    hiddenGem: true,
+    tagline: "Salt lakes, date palms and silence",
+    summary:
+      "Close to the Libyan border, Siwa has its own Amazigh language, mud-brick architecture, freshwater springs and salt lakes you can float in.",
+    attractions: [
+      { name: "Shali Fortress", note: "Ruins of the old mud-brick town" },
+      { name: "Temple of the Oracle", note: "Where Alexander the Great consulted the Oracle of Amun" },
+      { name: "Cleopatra's Spring", note: "A natural pool among palm groves" },
+      { name: "Great Sand Sea", note: "Dune safaris on the edge of the oasis" },
+    ],
+    bestMonths: [10, 11, 3, 4],
+    photo: "siwa",
+    passportFact: "Many Siwans speak Siwi, an Amazigh (Berber) language, at home.",
+    photoTip: { spot: "Salt lakes near Shali", light: "Sunset reflections on still water" },
+  },
+  {
+    slug: "fayoum",
+    name: "Fayoum",
+    region: "Western Desert",
+    lat: 29.3084,
+    lng: 30.8428,
+    category: "Nature",
+    environment: "oasis",
+    interests: { relaxation: 3, adventure: 2, family: 2, photography: 2, culture: 2 },
+    minBudgetLevel: 1,
+    idealDays: [1, 2],
+    hiddenGem: true,
+    tagline: "Lakes, waterfalls and pottery villages",
+    summary:
+      "Under two hours from Cairo by road, Fayoum has Egypt's only desert waterfalls, the pottery village of Tunis and Wadi Al-Hitan's fossil whales.",
+    attractions: [
+      { name: "Wadi El Rayan", note: "Lakes and small waterfalls in the desert" },
+      { name: "Wadi Al-Hitan", note: "UNESCO site with 40-million-year-old whale fossils" },
+      { name: "Tunis Village", note: "Pottery workshops by Lake Qarun" },
+    ],
+    bestMonths: [10, 11, 12, 1, 2, 3, 4],
+    photo: "fayoum",
+    passportFact: "Wadi Al-Hitan holds fossils of early whales that still had hind legs.",
+    photoTip: { spot: "Wadi Al-Hitan fossil trail", light: "Late afternoon long shadows" },
+  },
+  {
+    slug: "white-desert",
+    name: "White Desert",
+    region: "Western Desert",
+    lat: 27.3333,
+    lng: 28.1667,
+    category: "Desert & Oasis",
+    environment: "desert",
+    interests: { adventure: 3, photography: 3 },
+    minBudgetLevel: 2,
+    idealDays: [2, 3],
+    hiddenGem: true,
+    tagline: "A night under the stars among chalk sculptures",
+    summary:
+      "Wind-carved chalk formations near Farafra, usually visited on an overnight camping trip from Bahariya Oasis with a licensed operator.",
+    attractions: [
+      { name: "Chalk formations", note: "Including the famous 'mushroom' and 'chicken'" },
+      { name: "Black Desert", note: "Volcanic hills on the way from Bahariya" },
+      { name: "Crystal Mountain", note: "A ridge of quartz crystals" },
+    ],
+    bestMonths: [10, 11, 12, 1, 2, 3],
+    photo: "whiteDesert",
+    passportFact: "The formations are chalk, shaped by thousands of years of wind and sand.",
+    photoTip: { spot: "Main chalk field", light: "Sunset and full-moon nights" },
+  },
+  {
+    slug: "hurghada",
+    name: "Hurghada & El Gouna",
+    region: "Red Sea",
+    lat: 27.2579,
+    lng: 33.8116,
+    category: "Red Sea",
+    environment: "sea",
+    interests: { beaches: 3, diving: 2, family: 3, relaxation: 3 },
+    minBudgetLevel: 2,
+    idealDays: [3, 7],
+    hiddenGem: false,
+    tagline: "Year-round sun on the Red Sea",
+    summary:
+      "A long resort coast with easy snorkelling trips to Giftun Island, family-friendly beaches and the lagoon town of El Gouna to the north.",
+    attractions: [
+      { name: "Giftun Islands", note: "Snorkelling and boat trips" },
+      { name: "El Gouna", note: "Lagoon town with kitesurfing and a marina" },
+      { name: "Hurghada Marina", note: "Evening walks and seafood" },
+    ],
+    bestMonths: [3, 4, 5, 10, 11],
+    photo: "hurghada",
+    passportFact: "The Red Sea is one of the world's warmest and saltiest seas.",
+    photoTip: { spot: "Any east-facing beach", light: "Sunrise over the sea" },
+  },
+  {
+    slug: "marsa-alam",
+    name: "Marsa Alam",
+    region: "Red Sea",
+    lat: 25.0676,
+    lng: 34.8789,
+    category: "Red Sea",
+    environment: "sea",
+    interests: { diving: 3, beaches: 3, relaxation: 3, adventure: 1 },
+    minBudgetLevel: 2,
+    idealDays: [4, 7],
+    hiddenGem: true,
+    tagline: "Quiet reefs, dugongs and turtles",
+    summary:
+      "The calmer southern Red Sea, known for unspoilt reefs, bays where sea turtles feed and trips toward Wadi El Gemal National Park.",
+    attractions: [
+      { name: "Abu Dabbab Bay", note: "Seagrass bay where turtles are often seen" },
+      { name: "Wadi El Gemal National Park", note: "Desert valleys, mangroves and coast" },
+      { name: "Elphinstone Reef", note: "An advanced offshore dive site" },
+    ],
+    bestMonths: [3, 4, 5, 9, 10, 11],
+    photo: "marsaAlam",
+    passportFact: "Wadi El Gemal means 'Valley of the Camels'.",
+    photoTip: { spot: "Abu Dabbab beach", light: "Morning, when the water is calmest and clearest" },
+  },
+  {
+    slug: "sharm-el-sheikh",
+    name: "Sharm El Sheikh",
+    region: "South Sinai",
+    lat: 27.9158,
+    lng: 34.33,
+    category: "Red Sea",
+    environment: "sea",
+    interests: { diving: 3, beaches: 3, family: 2, relaxation: 2 },
+    minBudgetLevel: 2,
+    idealDays: [3, 7],
+    hiddenGem: false,
+    tagline: "Gateway to Ras Mohammed",
+    summary:
+      "A resort city at the tip of Sinai, next to Ras Mohammed National Park, one of the best-known reef areas in the Red Sea.",
+    attractions: [
+      { name: "Ras Mohammed National Park", note: "Coral walls and reef sharks" },
+      { name: "Naama Bay", note: "Promenade and beach" },
+      { name: "SS Thistlegorm", note: "Famous WWII wreck dive (advanced)" },
+    ],
+    bestMonths: [3, 4, 5, 10, 11],
+    photo: "sharm",
+    passportFact: "Ras Mohammed became Egypt's first national park in 1983.",
+    photoTip: { spot: "Ras Mohammed shoreline", light: "Midday for underwater colour; sunset on land" },
+  },
+  {
+    slug: "dahab",
+    name: "Dahab",
+    region: "South Sinai",
+    lat: 28.5091,
+    lng: 34.5136,
+    category: "Red Sea",
+    environment: "sea",
+    interests: { diving: 3, adventure: 3, relaxation: 2, beaches: 1, food: 1 },
+    minBudgetLevel: 1,
+    idealDays: [3, 6],
+    hiddenGem: false,
+    tagline: "Barefoot Sinai, between mountains and reef",
+    summary:
+      "A laid-back town with shore dives, freediving, windsurfing and an easy base for hiking Mount Sinai at sunrise.",
+    attractions: [
+      { name: "Blue Hole", note: "Famous freediving and snorkelling site" },
+      { name: "The Lighthouse reef", note: "Easy shore dives in town" },
+      { name: "Mount Sinai & St Catherine", note: "Night hike to watch sunrise" },
+    ],
+    bestMonths: [3, 4, 5, 9, 10, 11],
+    photo: "dahab",
+    passportFact: "Saint Catherine's Monastery is one of the oldest working Christian monasteries in the world.",
+    photoTip: { spot: "Mount Sinai summit", light: "Sunrise after the night climb" },
+  },
+  {
+    slug: "islamic-coptic-cairo",
+    name: "Historic Cairo",
+    region: "Greater Cairo",
+    lat: 30.0478,
+    lng: 31.2622,
+    category: "Islamic & Coptic",
+    environment: "city",
+    interests: { architecture: 3, history: 3, culture: 3, photography: 3, food: 2 },
+    minBudgetLevel: 1,
+    idealDays: [1, 2],
+    hiddenGem: true,
+    tagline: "Mamluk domes and ancient churches",
+    summary:
+      "The medieval heart of Cairo: Al-Muizz Street, Bab Zuweila, the Sultan Hassan mosque and, further south, the churches of Coptic Cairo.",
+    attractions: [
+      { name: "Bab Zuweila", note: "Fatimid gate you can climb for rooftop views" },
+      { name: "Mosque-Madrasa of Sultan Hassan", note: "A masterpiece of Mamluk architecture" },
+      { name: "Hanging Church", note: "Built over a gate of the Roman fortress of Babylon" },
+    ],
+    bestMonths: [10, 11, 12, 1, 2, 3, 4],
+    photo: "islamicCairo",
+    passportFact: "Al-Azhar, founded in 970 CE, is one of the oldest continuously running universities.",
+    photoTip: { spot: "Top of Bab Zuweila minarets", light: "Late afternoon" },
+  },
+  {
+    slug: "nubia",
+    name: "Nubian villages",
+    region: "Upper Egypt",
+    lat: 24.1,
+    lng: 32.87,
+    category: "Nature",
+    environment: "river",
+    interests: { culture: 3, family: 2, food: 2, photography: 2, relaxation: 2 },
+    minBudgetLevel: 1,
+    idealDays: [1, 2],
+    hiddenGem: true,
+    tagline: "Painted houses and Nubian hospitality",
+    summary:
+      "On the west bank of Aswan, Nubian communities welcome visitors to guesthouses, home kitchens and crafts. Book with community-run hosts where possible.",
+    attractions: [
+      { name: "Gharb Soheil", note: "Village with guesthouses and river views" },
+      { name: "Nubian Museum", note: "Nubian history from prehistory to today" },
+    ],
+    bestMonths: [11, 12, 1, 2],
+    photo: "nubian",
+    passportFact: "Nubian is a family of languages spoken along the Nile in southern Egypt and Sudan.",
+    photoTip: { spot: "Gharb Soheil lanes", light: "Morning; always ask before photographing people" },
+  },
+];
+
+export function getDestination(slug: string) {
+  return destinations.find((d) => d.slug === slug) ?? null;
+}

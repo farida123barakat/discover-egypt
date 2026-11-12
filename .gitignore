@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local demo database
+.data/
+
+# but do commit the placeholder template
+!.env.example
+
+# test output
+/test-results/
+/playwright-report/

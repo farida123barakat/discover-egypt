@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Discover Egypt
 
-## Getting Started
+**A thousand stories. One destination.**
 
-First, run the development server:
+A full-stack tourism platform concept for Egypt. It helps visitors **get inspired**, **plan a trip** and **travel well** once they arrive.
+
+> **Status:** concept and student project. It is **not** an official Ministry of Tourism and Antiquities website and is **not deployed**. Official facts are shown with a "last verified" date and a source, or are labelled *awaiting verification*.
+
+---
+
+## Try it in 3 minutes (no accounts needed)
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local      # local demo mode is already switched on
+npm run dev                     # open http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Admin:** go to `/admin` and sign in with `LOCAL_ADMIN_PASSWORD` from `.env.local`.
+- **Demo data:** submissions are saved to `.data/local-db.json` (git-ignored).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Example journey:** take the quiz on **Discover** → build a trip on **Plan** → save it → download the PDF in **My Egypt** → ask a question on **Ask a Local** → publish it from **/admin**.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## What is inside
 
-To learn more about Next.js, take a look at the following resources:
+| Area | Highlights |
+| --- | --- |
+| **Home** | Cinematic hero, Find Your Egypt quiz, featured places (chosen by admins), in-season picks, hidden gems, food, events, traveller stories |
+| **Discover** | Preference quiz with reasons for each match, interactive Leaflet map with filters, *Walk Through Time* timeline (with a kids' version), climate & crowd chart, **Golden Hour Finder**, events calendar, Ramadan guide |
+| **Plan** | Smart Trip Builder (day-by-day timeline, reorder activities), budget calculator (4 styles, 5 categories), live currency converter with manual fallback, packing list, suggested routes |
+| **Experience** | Food guide (price, vegetarian, background), Egyptian Arabic trainer with quiz and speech, etiquette, optional soundscapes (play only on request) |
+| **Travel Smart** | Emergency numbers, Cairo Metro and women-only carriages, walking routes on a map, accessibility (no unverified claims), fair price guide |
+| **My Egypt** | Saved places, Egypt Travel Passport stamps, itinerary, PDF download and print, packing list; optional account to sync trips |
+| **Admin** | Moderation queue (answer and publish), price editor, event manager, featured destinations, photo upload |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Full status: **[FEATURES.md](FEATURES.md)**.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Tech stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Next.js 15** (App Router) · **React 19** · **TypeScript** · **Tailwind CSS 4** · **Framer Motion** · **Supabase** (Postgres, Auth, Storage) · **Leaflet + OpenStreetMap** · **jsPDF** · **zod** · **Vitest** · **Playwright + axe-core**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Why these choices: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
+
+---
+
+## Scripts
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Development server |
+| `npm run build` / `npm start` | Production build / server |
+| `npm run typecheck` · `npm run lint` | TypeScript and ESLint |
+| `npm test` | Unit, API and **database permission** tests (Vitest + PGlite) |
+| `npm run test:e2e` | End-to-end, accessibility and mobile tests (Playwright). If Playwright can't download a browser, set `CHROME_PATH=/path/to/chrome` |
+| `npm run db:seed:generate` | Rebuild `supabase/seed.sql` from `src/content` |
+| `npm run audit:deps` | Check production dependencies for vulnerabilities |
+| `npm run check` | Typecheck, lint, test and build in one go |
+
+Latest results: **[docs/TEST_RESULTS.md](docs/TEST_RESULTS.md)**.
+
+---
+
+## Project structure
+
+```
+src/
+  app/            pages and API routes (app router)
+  components/     reusable UI (one file per feature area)
+  content/        ALL editorial content, typed — edit text here, not in components
+  lib/            logic: recommendations, budget, sun times, validation, auth, data store
+supabase/
+  migrations/     database schema + Row Level Security
+  seed.sql        generated from src/content
+tests/            unit, API and database tests
+e2e/              Playwright user journeys, accessibility, responsive
+docs/             architecture, deployment, security, test results
+```
+
+---
+
+## Going to production
+
+Step by step, including what accounts and keys you need: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
+
+Security measures and known risks: **[docs/SECURITY.md](docs/SECURITY.md)**.
+
+---
+
+## Content and credits
+
+- Photos: Wikimedia Commons, each with author and licence (see `/credits`). Every file was checked against the Commons API on 13 Nov 2026.
+- Map data © OpenStreetMap contributors.
+- Exchange rates: ExchangeRate-API open endpoint (attribution required).
+
+Arabic and right-to-left support: the layout sets `lang` and `dir` at the root, and all copy lives in `src/content`, so a `[locale]` segment can be added later.
