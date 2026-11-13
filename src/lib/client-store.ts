@@ -20,6 +20,8 @@ export type MyEgypt = {
   recipes: string[];
   /** chosen food region id — never a precise location */
   foodRegion: string | null;
+  /** personal bucket-list progress, keyed by official activity id */
+  bucket: Record<string, { added: boolean; done: boolean; fav: boolean; doneAt?: string }>;
 };
 
 const KEY = "discover-egypt:v1";
@@ -31,6 +33,7 @@ const empty = (): MyEgypt => ({
   packing: packingDefaults.map((label, i) => ({ id: `d${i}`, label, done: false })),
   recipes: [],
   foodRegion: null,
+  bucket: {},
 });
 
 let cache: MyEgypt | null = null;
@@ -100,6 +103,23 @@ export function toggleRecipe(slug: string) {
 }
 export function setFoodRegion(id: string | null) {
   update((s) => ({ ...s, foodRegion: id }));
+}
+type BucketEntry = MyEgypt["bucket"][string];
+export function setBucket(id: string, change: Partial<BucketEntry>) {
+  update((s) => {
+    const cur: BucketEntry = s.bucket[id] ?? { added: false, done: false, fav: false };
+    const next: BucketEntry = { ...cur, ...change };
+    if (change.done === true && !cur.done) next.doneAt = new Date().toISOString();
+    if (change.done === false) delete next.doneAt;
+    if (next.done) next.added = true;
+    const bucket = { ...s.bucket };
+    if (!next.added && !next.done && !next.fav) delete bucket[id];
+    else bucket[id] = next;
+    return { ...s, bucket };
+  });
+}
+export function replaceBucket(bucket: MyEgypt["bucket"]) {
+  update((s) => ({ ...s, bucket }));
 }
 export function saveItinerary(it: Itinerary | null) {
   update((s) => ({ ...s, itinerary: it }));

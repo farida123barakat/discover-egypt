@@ -107,6 +107,34 @@ export const featuredSchema = z.object({
   slugs: z.array(z.enum(slugs)).length(5, "Choose exactly five destinations").refine((a) => new Set(a).size === 5, "Choose five different destinations"),
 });
 
+const optionalText = (max: number) => z.string().transform(clean).pipe(z.string().max(max));
+const httpsUrl = z.string().url("Enter a full https:// link").startsWith("https://", "Links must use https");
+
+export const bucketSchema = z.object({
+  id: z.string().regex(/^[a-z0-9-]{3,60}$/, "Use lowercase letters, numbers and hyphens"),
+  title: text(5, 90, "Title"),
+  description: text(10, 400, "Description"),
+  destination: z.enum(slugs).nullable(),
+  place: optionalText(80).optional(),
+  categories: z.array(z.enum(["history", "adventure", "food", "culture", "nature", "photography", "relaxation", "family", "hidden-gems"])).min(1, "Choose at least one category").max(5),
+  effort: z.enum(["easy", "moderate", "challenging"]),
+  duration: text(2, 80, "Duration"),
+  bestMonths: z.array(z.number().int().min(1).max(12)).max(12),
+  season: z.object({ note: text(5, 200, "Season note"), verified: z.boolean(), source: z.object({ name: text(2, 120, "Source name"), url: httpsUrl }).optional() }).optional(),
+  tips: z.array(text(3, 160, "Tip")).max(5),
+  photo: z.string().regex(/^[A-Za-z0-9]{2,40}$/).nullable(),
+  photoPath: z.string().regex(/^[a-f0-9-]{36}\.(jpg|png|webp)$/).nullable().optional(),
+  link: z.object({ href: z.string().regex(/^\/[\w\-/#]*$/, "Use a link inside this site"), label: text(2, 40, "Link label") }).optional(),
+  published: z.boolean(),
+  featured: z.boolean(),
+}).refine((a) => a.destination !== null || (a.place && a.place.length >= 3), { message: "Choose a destination or describe the place", path: ["place"] })
+  .refine((a) => !a.season?.verified || !!a.season.source, { message: "A verified season needs a source", path: ["season"] });
+
+export const bucketProgressSchema = z.record(
+  z.string().regex(/^[a-z0-9-]{3,60}$/),
+  z.object({ added: z.boolean(), done: z.boolean(), fav: z.boolean(), doneAt: z.string().datetime().optional() }),
+).refine((r) => Object.keys(r).length <= 200, "Too many entries");
+
 export type Itinerary = z.infer<typeof itinerarySchema>;
 
 export function fieldErrors(err: z.ZodError) {

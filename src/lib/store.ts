@@ -7,6 +7,7 @@ import { supabaseForUser, supabaseService } from "@/lib/supabase/server";
 import { events as seedEvents, prices as seedPrices, type EventItem, type Price } from "@/content/practical";
 import { destinations } from "@/content/destinations";
 import { recipes as seedRecipes, type Recipe } from "@/content/food";
+import { bucketSeed, type BucketActivity } from "@/content/bucket";
 import type { Itinerary } from "@/lib/validation";
 
 export type Kind = "question" | "story";
@@ -61,6 +62,7 @@ type LocalDb = {
   events?: EventItem[] | null;
   featured?: string[] | null;
   recipeReview?: Record<string, { status: "draft" | "approved"; lastReviewed: string; reviewer?: string }>;
+  bucket?: BucketActivity[] | null;
 };
 const DB_FILE = path.join(process.cwd(), ".data", "local-db.json");
 let queue: Promise<unknown> = Promise.resolve();
@@ -416,4 +418,104 @@ export async function adminSetRecipeReview(slug: string, status: "draft" | "appr
     return true;
   }
   throw new BackendUnavailable();
+}
+
+/* ---------------- Bucket list: official activities (admin-managed) ---------------- */
+type BucketRow = { id: string; data: BucketActivity };
+
+/** All activities including unpublished ones — admin use. */
+export async function getBucketAll(): Promise<BucketActivity[]> {
+  const mode = backendMode();
+  if (mode === "supabase") {
+    const { data } = await (await supabaseForUser()).from("bucket_list_activities").select("id, data").order("created_at");
+    if (data?.length) return (data as BucketRow[]).map((r) => ({ ...r.data, id: r.id }));
+  }
+  if (mode === "local") {
+    const db = await readLocal();
+    if (db.bucket) return db.bucket;
+  }
+  return bucketSeed;
+}
+
+/** What visitors see: published only, featured first. */
+export async function getBucketPublished(): Promise<BucketActivity[]> {
+  return (await getBucketAll()).filter((a) => a.published).sort((a, b) => Number(b.featured) - Number(a.featured));
+}
+
+export async function adminUpsertBucket(a: BucketActivity) {
+  const mode = backendMode();
+  if (mode === "supabase") {
+    const { error } = await supabaseService()
+      .from("bucket_list_activities")
+      .upsert({ id: a.id, title: a.title, destination_slug: a.destination, published: a.published, featured: a.featured, data: a, last_reviewed: a.lastReviewed });
+    if (error) throw new Error("Save failed");
+    return;
+  }
+  if (mode === "local") {
+    await writeLocal((db) => {
+      const list = db.bucket ?? [...bucketSeed];
+      const i = list.findIndex((x) => x.id === a.id);
+      if (i >= 0) list[i] = { ...a, createdAt: list[i].createdAt };
+      else list.push(a);
+      db.bucket = list;
+    });
+    return;
+  }
+  throw new BackendUnavailable();
+}
+
+export async function adminDeleteBucket(id: string) {
+  const mode = backendMode();
+  if (mode === "supabase") {
+    const { error, count } = await supabaseService().from("bucket_list_activities").delete({ count: "exact" }).eq("id", id);
+    if (error) throw new Error("Delete failed");
+    return (count ?? 0) > 0;
+  }
+  if (mode === "local") {
+    return writeLocal((db) => {
+      const list = db.bucket ?? [...bucketSeed];
+      const next = list.filter((x) => x.id !== id);
+      db.bucket = next;
+      return next.length !== list.length;
+    });
+  }
+  throw new BackendUnavailable();
+}
+
+/* ---------------- Bucket list: a signed-in visitor's own progress (Supabase only) ---------------- */
+export type BucketProgress = Record<string, { added: boolean; done: boolean; fav: boolean; doneAt?: string }>;
+
+export async function getMyBucket(): Promise<BucketProgress | null> {
+  const sb = await supabaseForUser();
+  const { data: auth } = await sb.auth.getUser();
+  if (!auth.user) return null;
+  const { data } = await sb.from("user_bucket_list").select("activity_id, added, completed, favourite, completed_at").eq("user_id", auth.user.id);
+  return Object.fromEntries(
+    (data ?? []).map((r: { activity_id: string; added: boolean; completed: boolean; favourite: boolean; completed_at: string | null }) => [
+      r.activity_id,
+      { added: r.added, done: r.completed, fav: r.favourite, doneAt: r.completed_at ?? undefined },
+    ]),
+  );
+}
+
+/** Replace the signed-in visitor's progress. user_id always comes from the session, never the request. */
+export async function saveMyBucket(progress: BucketProgress) {
+  const sb = await supabaseForUser();
+  const { data: auth } = await sb.auth.getUser();
+  if (!auth.user) return { ok: false as const, status: 401 };
+  const rows = Object.entries(progress).map(([activity_id, p]) => ({
+    user_id: auth.user!.id,
+    activity_id,
+    added: p.added,
+    completed: p.done,
+    favourite: p.fav,
+    completed_at: p.done ? (p.doneAt ?? new Date().toISOString()) : null,
+  }));
+  const del = await sb.from("user_bucket_list").delete().eq("user_id", auth.user.id);
+  if (del.error) return { ok: false as const, status: 500 };
+  if (rows.length) {
+    const { error } = await sb.from("user_bucket_list").insert(rows);
+    if (error) return { ok: false as const, status: 500 };
+  }
+  return { ok: true as const };
 }

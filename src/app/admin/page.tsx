@@ -3,8 +3,9 @@ import { redirect } from "next/navigation";
 import { destinations } from "@/content/destinations";
 import { getAdmin } from "@/lib/auth";
 import { backendMode } from "@/lib/env";
-import { adminListSubmissions, adminStats, getEvents, getFeatured, getPrices, getRecipes } from "@/lib/store";
-import { EventManager, FeaturedPicker, LogoutButton, ModerationQueue, PhotoUpload, PriceEditor, RecipeReview } from "@/components/admin";
+import { adminListSubmissions, adminStats, getEvents, getFeatured, getPrices, getRecipes, getBucketAll } from "@/lib/store";
+import { EventManager, FeaturedPicker, LogoutButton, ModerationQueue, PhotoUpload, PriceEditor, RecipeReview, BucketManager } from "@/components/admin";
+import { photos } from "@/content/images";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Admin", robots: { index: false, follow: false } };
@@ -12,7 +13,7 @@ export const metadata: Metadata = { title: "Admin", robots: { index: false, foll
 export default async function AdminPage() {
   const admin = await getAdmin();
   if (!admin) redirect("/admin/login");
-  const [stats, pending, prices, events, featured, recipes] = await Promise.all([adminStats(), adminListSubmissions("pending"), getPrices(), getEvents(), getFeatured(), getRecipes()]);
+  const [stats, pending, prices, events, featured, recipes, bucket] = await Promise.all([adminStats(), adminListSubmissions("pending"), getPrices(), getEvents(), getFeatured(), getRecipes(), getBucketAll()]);
 
   return (
     <div className="mx-auto max-w-7xl px-5 pb-24 pt-32 md:px-8">
@@ -59,6 +60,12 @@ export default async function AdminPage() {
       <section aria-labelledby="feat-h" className="mt-14">
         <h2 id="feat-h" className="text-3xl">Featured on the homepage</h2>
         <FeaturedPicker options={destinations.map((d) => ({ slug: d.slug, name: d.name }))} current={featured} />
+      </section>
+
+      <section aria-labelledby="bk-h" className="mt-14">
+        <h2 id="bk-h" className="text-3xl">Bucket list</h2>
+        <p className="mt-1 text-sm text-muted">Official activities. Visitors&rsquo; personal progress is stored separately and can&rsquo;t change these.</p>
+        <BucketManager items={bucket} destinations={destinations.map((d) => ({ slug: d.slug, name: d.name }))} photoKeys={Object.entries(photos).map(([key, p]) => ({ key, alt: p.alt }))} />
       </section>
 
       <section aria-labelledby="rec-h" className="mt-14">

@@ -37,6 +37,14 @@ export function Scanner() {
     return () => clearTimeout(id);
   }, []);
 
+  // Attach the camera stream after React has rendered the <video> element (avoids a black preview).
+  useEffect(() => {
+    const v = video.current;
+    if (stage !== "camera" || !v || !stream.current) return;
+    v.srcObject = stream.current;
+    v.play().catch(() => setError("The camera preview could not start. Try again, or upload a photo instead."));
+  }, [stage]);
+
   const stopCamera = useCallback(() => {
     stream.current?.getTracks().forEach((t) => t.stop());
     stream.current = null;
@@ -64,13 +72,7 @@ export function Scanner() {
     try {
       const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 } }, audio: false });
       stream.current = s;
-      setStage("camera");
-      requestAnimationFrame(() => {
-        if (video.current) {
-          video.current.srcObject = s;
-          void video.current.play();
-        }
-      });
+      setStage("camera"); // the effect below attaches the stream once the <video> element exists
     } catch (e) {
       const name = (e as DOMException).name;
       setError(

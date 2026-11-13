@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabaseBrowser } from "@/lib/supabase/browser";
-import { saveItinerary, useMyEgypt } from "@/lib/client-store";
+import { replaceBucket, saveItinerary, useMyEgypt } from "@/lib/client-store";
 import type { Itinerary } from "@/lib/validation";
 import { formatDate } from "./ui";
 
@@ -71,6 +71,43 @@ export function AccountPanel() {
         <p>Signed in as <strong>{user.email}</strong></p>
         <button type="button" className="btn btn-ghost" onClick={async () => { await sb?.auth.signOut(); setUser(null); setTrips([]); }}>Sign out</button>
       </div>
+
+      <section className="card p-7" aria-labelledby="bucket-sync-h">
+        <h2 id="bucket-sync-h" className="text-2xl">Bucket list progress</h2>
+        <p className="mt-1 text-sm text-muted">
+          {Object.values(me.bucket).filter((b) => b.done).length} completed and {Object.values(me.bucket).filter((b) => b.added).length} on your list on this device.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              const r = await fetch("/api/bucket", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(me.bucket) });
+              setBusy(false);
+              setMsg(r.ok ? "Bucket list saved to your account." : "Could not save your bucket list.");
+            }}
+          >
+            Save to my account
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            disabled={busy}
+            onClick={async () => {
+              const r = await fetch("/api/bucket");
+              const d = (await r.json().catch(() => ({}))) as { progress?: typeof me.bucket };
+              if (r.ok && d.progress) {
+                replaceBucket(d.progress);
+                setMsg("Loaded your bucket list from your account.");
+              } else setMsg("Could not load your bucket list.");
+            }}
+          >
+            Load from my account
+          </button>
+        </div>
+      </section>
 
       <section className="card p-7" aria-labelledby="cloud-h">
         <h2 id="cloud-h" className="text-2xl">Trips saved to your account</h2>
