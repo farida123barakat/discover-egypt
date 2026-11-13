@@ -104,7 +104,7 @@ export const eventSchema = z.object({
 export const eventDeleteSchema = z.object({ id: z.string().regex(/^[a-z0-9-]{2,60}$/) });
 
 export const featuredSchema = z.object({
-  slugs: z.array(z.enum(slugs)).length(4, "Choose exactly four destinations").refine((a) => new Set(a).size === 4, "Choose four different destinations"),
+  slugs: z.array(z.enum(slugs)).length(5, "Choose exactly five destinations").refine((a) => new Set(a).size === 5, "Choose five different destinations"),
 });
 
 export type Itinerary = z.infer<typeof itinerarySchema>;

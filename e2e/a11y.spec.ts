@@ -8,6 +8,8 @@ for (const path of pages) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(path);
     await page.waitForLoadState("networkidle");
+    // Let entrance fades finish: axe would otherwise measure colours mid-animation.
+    await page.waitForTimeout(1600);
     // Map pins can sit closer than 24px when places are close together (Cairo/Giza). WCAG 2.5.8 allows this
     // because every pin has an equivalent full-size control in the destination/stop list next to the map.
     const r = await new AxeBuilder({ page }).exclude(".leaflet-marker-icon").withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();

@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import "@fontsource-variable/fraunces";
 import "@fontsource-variable/inter";
+import "@fontsource/amiri/arabic-400.css";
+import "@fontsource/amiri/arabic-700.css";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -25,6 +27,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // dir/lang are set here so Arabic (rtl) can be added later via a [locale] segment.
   return (
     <html lang="en" dir="ltr">
+      <head>
+        {/* Without JavaScript, scroll-reveal content would stay at opacity 0 — show it instead. */}
+        <noscript>
+          <style>{`[style*="opacity:0"],[style*="opacity: 0"]{opacity:1!important;transform:none!important}`}</style>
+        </noscript>
+      </head>
       <body className="min-h-screen antialiased">
         <a href="#main" className="skip-link">
           Skip to main content

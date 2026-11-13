@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Mail } from "lucide-react";
+import { Logo } from "./design";
 import { AccessibilityControls } from "./SiteHeader";
 import { NewsletterForm } from "./forms";
 
@@ -36,13 +38,24 @@ const cols = [
 export function SiteFooter() {
   return (
     <footer className="on-dark bg-midnight text-ivory/85">
+      <section aria-labelledby="inspired-h" className="border-b border-ivory/10 bg-night">
+        <div className="mx-auto grid max-w-7xl gap-8 px-5 py-12 md:grid-cols-[1fr_1.2fr] md:items-center md:px-8">
+          <div className="flex items-start gap-4">
+            <Mail aria-hidden="true" size={28} strokeWidth={1.25} className="mt-1 shrink-0 text-gold" />
+            <div>
+              <h2 id="inspired-h" className="text-3xl !text-ivory">
+                Stay inspired
+              </h2>
+              <p className="mt-1 text-ivory/75">Seasonal travel ideas, festivals and new stories from Egypt — once a month, never more.</p>
+            </div>
+          </div>
+          <NewsletterForm />
+        </div>
+      </section>
       <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 md:grid-cols-12 md:px-8">
         <div className="md:col-span-5">
-          <p className="font-display text-3xl text-ivory">Discover Egypt</p>
-          <p className="mt-2 text-ivory/70">A thousand stories. One destination.</p>
-          <div className="mt-8 max-w-md">
-            <NewsletterForm />
-          </div>
+          <Logo tone="light" />
+          <p className="mt-4 max-w-sm text-ivory/70">A thousand stories. One destination. A concept platform for travellers planning a trip to Egypt.</p>
         </div>
         {cols.map((c) => (
           <nav key={c.title} aria-label={c.title} className="md:col-span-2">

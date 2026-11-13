@@ -8,9 +8,13 @@
   --color-sand-deep: #c9b08a;
   --color-midnight: #0f1b2d;
   --color-midnight-soft: #1b2b44;
+  --color-night: #0a1220;
   --color-nile: #2f6f6b; /* text-safe turquoise on ivory (≈5.6:1) */
   --color-sea: #5fa8a2; /* decorative turquoise */
-  --color-gold: #b08d4a; /* decorative only */
+  --color-gold-200: #f0dcb0;
+  --color-gold-300: #e4c486; /* CTA fill on dark, midnight text */
+  --color-gold: #c9a35a; /* decorative only */
+  --color-ember: #c56a2d; /* sunset gradients only, never text */
   --color-gold-ink: #7d5f27; /* text-safe gold on ivory (≈5.3:1) */
   --color-charcoal: #1f2126;
   --color-ink: #2b2d33;
@@ -20,6 +24,10 @@
 
   --font-serif: "Fraunces Variable", Georgia, "Times New Roman", serif;
   --font-sans: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-arabic: "Amiri", "Noto Naskh Arabic", "Geeza Pro", serif;
+
+  --shadow-soft: 0 1px 0 rgb(15 27 45 / 0.04), 0 20px 40px -28px rgb(15 27 45 / 0.35);
+  --shadow-lift: 0 2px 0 rgb(15 27 45 / 0.04), 0 30px 60px -30px rgb(15 27 45 / 0.55);
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -111,7 +119,8 @@ html[data-contrast="high"] .card {
   border: 2px solid #000;
 }
 
-/* ---------- Components ---------- */
+/* ---------- Components (in the components layer so Tailwind utilities can override them) ---------- */
+@layer components {
 .eyebrow {
   font-family: var(--font-sans);
   font-size: 0.75rem;
@@ -156,6 +165,27 @@ html[data-contrast="high"] .card {
   background: var(--color-midnight-soft);
   box-shadow: 0 10px 30px -12px rgb(15 27 45 / 0.6);
 }
+.btn-gold {
+  background: var(--color-gold-300);
+  color: var(--color-midnight);
+}
+.btn-gold:hover {
+  background: var(--color-gold-200);
+  box-shadow: 0 12px 34px -12px rgb(201 163 90 / 0.7);
+}
+.btn-outline-light {
+  border: 1.5px solid rgb(250 246 238 / 0.7);
+  color: var(--color-ivory);
+}
+.btn-outline-light:hover {
+  background: rgb(250 246 238 / 0.12);
+  border-color: var(--color-ivory);
+}
+.btn-sm {
+  min-height: 40px;
+  padding: 0.45rem 1rem;
+  font-size: 0.875rem;
+}
 .btn-light {
   background: var(--color-ivory);
   color: var(--color-midnight);
@@ -170,9 +200,105 @@ html[data-contrast="high"] .card {
 .card {
   background: #fff;
   border-radius: 1.25rem;
-  box-shadow:
-    0 1px 0 rgb(15 27 45 / 0.04),
-    0 20px 40px -28px rgb(15 27 45 / 0.35);
+  box-shadow: var(--shadow-soft);
+}
+
+.glass {
+  background: rgb(15 27 45 / 0.55);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid rgb(250 246 238 / 0.15);
+  border-radius: 1.5rem;
+  color: var(--color-ivory);
+}
+.glass .chip {
+  border-color: rgb(250 246 238 / 0.45);
+  color: var(--color-ivory);
+}
+.glass .chip:hover {
+  border-color: var(--color-gold-300);
+}
+.glass .chip[aria-pressed="true"],
+.glass .chip:has(input:checked) {
+  background: var(--color-gold-300);
+  border-color: var(--color-gold-300);
+  color: var(--color-midnight);
+}
+html[data-contrast="high"] .glass {
+  background: rgb(0 0 0 / 0.9);
+}
+
+/* Hero typography */
+.display-hero {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: clamp(2.9rem, 7.4vw, 6.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  font-variation-settings: "SOFT" 30, "WONK" 0;
+}
+.display-italic {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.2rem, 2vw, 1.75rem);
+  line-height: 1.35;
+}
+
+/* Golden-hour grade over photography: warm wash + bottom scrim for legible text */
+.golden-grade::before,
+.golden-grade::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.golden-grade img {
+  /* Warm every slide toward one golden-hour look (rendering only — source files are unchanged). */
+  filter: sepia(0.38) saturate(1.35) hue-rotate(-6deg) brightness(1.04);
+}
+.golden-grade::before {
+  z-index: 1;
+  background: linear-gradient(180deg, rgb(224 150 70 / 0.45), rgb(230 170 100 / 0.25) 50%, rgb(197 106 45 / 0.2));
+  mix-blend-mode: overlay;
+}
+.golden-grade::after {
+  z-index: 1;
+  background:
+    linear-gradient(to top, rgb(10 18 32 / 0.88), rgb(10 18 32 / 0.28) 38%, transparent 62%),
+    linear-gradient(to right, rgb(10 18 32 / 0.5), transparent 50%);
+}
+html[data-contrast="high"] .golden-grade img {
+  filter: none;
+}
+html[data-contrast="high"] .golden-grade::after {
+  background: rgb(0 0 0 / 0.78);
+}
+
+/* Arabic text */
+.arabic {
+  font-family: var(--font-arabic);
+  font-size: 1.25em;
+  line-height: 1.7;
+}
+
+/* Ken Burns for hero slides */
+@keyframes kenburns {
+  from {
+    transform: scale(1.12) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.02) translate3d(-1%, -1%, 0);
+  }
+}
+.kenburns {
+  animation: kenburns 9s linear forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kenburns {
+    animation: none;
+  }
 }
 
 .chip {
@@ -253,6 +379,8 @@ html[data-contrast="high"] .card {
   clip: rect(0 0 0 0);
 }
 
+}
+
 /* Leaflet tweaks */
 .leaflet-container {
   font-family: var(--font-sans);
@@ -278,4 +406,13 @@ html[data-contrast="high"] .card {
   to {
     transform: scale(1.02);
   }
+}
+
+/* Forms placed on dark sections (unlayered so they beat utility colours) */
+.on-dark .field label {
+  color: var(--color-ivory);
+}
+.on-dark .field .text-muted,
+.on-dark .field [id$="-hint"] {
+  color: rgb(250 246 238 / 0.75);
 }

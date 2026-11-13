@@ -2,31 +2,32 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { Building2, Camera, Fish, Landmark, Moon, Mountain, Palette, Umbrella, Users, UtensilsCrossed, type LucideIcon } from "lucide-react";
 import { ENVIRONMENTS, INTERESTS, type Environment, type Interest } from "@/content/destinations";
 import { recommend, type Preferences, type Recommendation } from "@/lib/recommend";
 import { STYLES, styleLevel, type Style } from "@/lib/budget";
 import { Photo } from "./ui";
 import { SaveButton } from "./destinations";
 
-const INTEREST_ICONS: Record<Interest, string> = {
-  history: "𓂀",
-  beaches: "◠",
-  diving: "≋",
-  adventure: "▲",
-  food: "◉",
-  culture: "✦",
-  family: "❖",
-  relaxation: "☾",
-  photography: "◎",
-  architecture: "⌂",
+export const INTEREST_ICONS: Record<Interest, LucideIcon> = {
+  history: Landmark,
+  beaches: Umbrella,
+  diving: Fish,
+  adventure: Mountain,
+  food: UtensilsCrossed,
+  culture: Palette,
+  family: Users,
+  relaxation: Moon,
+  photography: Camera,
+  architecture: Building2,
 };
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 const STEPS = ["Interests", "Setting", "Style", "Timing"] as const;
 
-export function FindYourEgypt({ compact = false }: { compact?: boolean }) {
+export function FindYourEgypt({ compact = false, initialInterests = [] }: { compact?: boolean; initialInterests?: Interest[] }) {
   const [step, setStep] = useState(0);
-  const [interests, setInterests] = useState<Interest[]>([]);
+  const [interests, setInterests] = useState<Interest[]>(initialInterests);
   const [environment, setEnvironment] = useState<Environment | "any">("any");
   const [style, setStyle] = useState<Style>("comfortable");
   const [days, setDays] = useState(7);
@@ -153,9 +154,10 @@ export function FindYourEgypt({ compact = false }: { compact?: boolean }) {
                       checked={interests.includes(i)}
                       onChange={() => setInterests((v) => (v.includes(i) ? v.filter((x) => x !== i) : [...v, i]))}
                     />
-                    <span aria-hidden="true" className="w-5 text-center text-lg">
-                      {INTEREST_ICONS[i]}
-                    </span>
+                    {(() => {
+                      const Icon = INTEREST_ICONS[i];
+                      return <Icon aria-hidden={true} size={18} strokeWidth={1.75} className="shrink-0" />;
+                    })()}
                     {i}
                   </label>
                 ))}

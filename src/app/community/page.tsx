@@ -20,7 +20,7 @@ export default async function CommunityPage() {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-16 px-5 py-20 md:px-8 lg:grid-cols-[1fr_1.1fr]">
+      <section id="ask" className="mx-auto grid max-w-7xl scroll-mt-24 gap-16 px-5 py-20 md:px-8 lg:grid-cols-[1fr_1.1fr]">
         <div>
           <SectionHeading eyebrow="Recently answered" title="From the community." />
           {answered.length ? (

@@ -124,5 +124,5 @@ insert into public.travel_prices (id, item, min_egp, max_egp, kind, status, last
 insert into public.travel_prices (id, item, min_egp, max_egp, kind, status, last_verified, source_name, source_url) values ('taxi-short', 'Short ride-hailing trip in central Cairo', 60, 150, 'estimate', 'estimate', '2026-11-12', null, null) on conflict (id) do nothing;
 insert into public.travel_prices (id, item, min_egp, max_egp, kind, status, last_verified, source_name, source_url) values ('sim', 'Tourist SIM card with data', 300, 800, 'estimate', 'estimate', '2026-11-12', null, null) on conflict (id) do nothing;
 insert into public.travel_prices (id, item, min_egp, max_egp, kind, status, last_verified, source_name, source_url) values ('tea', 'Tea at a local ahwa (café)', 15, 40, 'estimate', 'estimate', '2026-11-12', null, null) on conflict (id) do nothing;
-insert into public.site_settings (key, value) values ('featured_destinations', '["luxor","aswan","alexandria","dahab"]'::jsonb) on conflict (key) do nothing;
+insert into public.site_settings (key, value) values ('featured_destinations', '["giza","luxor","aswan","dahab","siwa"]'::jsonb) on conflict (key) do nothing;
 commit;

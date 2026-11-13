@@ -32,7 +32,7 @@ export default function PlanPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-16 md:px-8" aria-label="Smart trip builder">
+      <section id="builder" className="mx-auto max-w-7xl scroll-mt-24 px-5 py-16 md:px-8" aria-label="Smart trip builder">
         <Suspense fallback={<p role="status">Loading trip builder…</p>}>
           <TripBuilder />
         </Suspense>
@@ -47,7 +47,7 @@ export default function PlanPage() {
         </div>
       </section>
 
-      <section className="bg-limestone py-24" aria-labelledby="tools-h">
+      <section id="tools" className="scroll-mt-24 bg-limestone py-24" aria-labelledby="tools-h">
         <div className="mx-auto grid max-w-7xl gap-10 px-5 md:px-8 lg:grid-cols-2">
           <div>
             <SectionHeading id="tools-h" eyebrow="Currency converter" title="Euros, dollars, pounds to Egyptian pounds." />
@@ -64,7 +64,7 @@ export default function PlanPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-24 md:px-8" aria-labelledby="routes-h">
+      <section id="routes" className="mx-auto max-w-7xl scroll-mt-24 px-5 py-24 md:px-8" aria-labelledby="routes-h">
         <div className="grid gap-12 lg:grid-cols-2">
           <div>
             <SectionHeading id="routes-h" eyebrow="Suggested routes" title="How long between places?" />

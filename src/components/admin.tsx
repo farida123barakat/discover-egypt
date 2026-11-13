@@ -364,15 +364,15 @@ export function FeaturedPicker({ options, current }: { options: { slug: string; 
       onSubmit={async (e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
-        const slugs = [0, 1, 2, 3].map((i) => String(fd.get(`slot${i}`)));
+        const slugs = [0, 1, 2, 3, 4].map((i) => String(fd.get(`slot${i}`)));
         const r = await send("/api/admin/featured", "POST", { slugs });
         setMsg(r.ok ? "Homepage updated." : r.fields.slugs ?? r.error ?? "Save failed");
         if (r.ok) router.refresh();
       }}
     >
-      {[0, 1, 2, 3].map((i) => (
+      {[0, 1, 2, 3, 4].map((i) => (
         <div key={i} className="field">
-          <label htmlFor={`slot${i}`}>{i === 0 ? "Large slot" : `Slot ${i + 1}`}</label>
+          <label htmlFor={`slot${i}`}>{`Position ${i + 1}`}</label>
           <select id={`slot${i}`} name={`slot${i}`} defaultValue={current[i]} className="input">
             {options.map((o) => (
               <option key={o.slug} value={o.slug}>{o.name}</option>

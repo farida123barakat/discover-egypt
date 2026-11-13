@@ -69,7 +69,7 @@ for (const p of prices) {
   );
 }
 
-out.push(`insert into public.site_settings (key, value) values ('featured_destinations', '["luxor","aswan","alexandria","dahab"]'::jsonb) on conflict (key) do nothing;`);
+out.push(`insert into public.site_settings (key, value) values ('featured_destinations', '["giza","luxor","aswan","dahab","siwa"]'::jsonb) on conflict (key) do nothing;`);
 out.push("commit;", "");
 
 const file = path.join(__dirname, "..", "supabase", "seed.sql");

@@ -334,7 +334,8 @@ export async function adminDeleteEvent(id: string) {
 }
 
 /* ---------------- Featured destinations (homepage) ---------------- */
-export const DEFAULT_FEATURED = ["luxor", "aswan", "alexandria", "dahab"];
+export const FEATURED_SLOTS = 5;
+export const DEFAULT_FEATURED = ["giza", "luxor", "aswan", "dahab", "siwa"];
 const validSlug = (s: string) => destinations.some((d) => d.slug === s);
 
 export async function getFeatured(): Promise<string[]> {
@@ -347,7 +348,7 @@ export async function getFeatured(): Promise<string[]> {
     list = (await readLocal()).featured ?? null;
   }
   const clean = (list ?? DEFAULT_FEATURED).filter(validSlug);
-  return clean.length === 4 ? clean : DEFAULT_FEATURED;
+  return clean.length === FEATURED_SLOTS ? clean : DEFAULT_FEATURED;
 }
 
 export async function adminSetFeatured(slugs: string[]) {

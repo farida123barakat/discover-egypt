@@ -1,105 +1,185 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ChevronDown, Menu, Search, UserRound, X } from "lucide-react";
+import { NAV } from "@/content/navigation";
 import { useMyEgypt } from "@/lib/client-store";
-
-const NAV = [
-  { href: "/discover", label: "Discover" },
-  { href: "/plan", label: "Plan" },
-  { href: "/experience", label: "Experience" },
-  { href: "/travel-smart", label: "Travel Smart" },
-  { href: "/community", label: "Ask a Local" },
-];
+import { Logo } from "./design";
+import { SearchDialog } from "./SearchDialog";
 
 export function SiteHeader() {
   const path = usePathname();
-  const [open, setOpen] = useState(false);
+  const [mobile, setMobile] = useState(false);
+  const [menu, setMenu] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const { stamps, favourites } = useMyEgypt();
-  const overHero = path === "/" && !scrolled && !open;
+  const navRef = useRef<HTMLElement>(null);
+  const overHero = path === "/" && !scrolled && !mobile;
+  const count = stamps.length + favourites.length;
 
-  useEffect(() => setOpen(false), [path]);
+  useEffect(() => {
+    setMobile(false);
+    setMenu(null);
+  }, [path]);
+
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 40);
     on();
     window.addEventListener("scroll", on, { passive: true });
     return () => window.removeEventListener("scroll", on);
   }, []);
+
   useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMenu(null);
+        setMobile(false);
+      }
+      const typing = e.target instanceof HTMLElement && /input|textarea|select/i.test(e.target.tagName);
+      if (((e.key === "k" && (e.metaKey || e.ctrlKey)) || (e.key === "/" && !typing)) && !searchOpen) {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    const onClick = (e: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) setMenu(null);
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
+    document.addEventListener("click", onClick);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("click", onClick);
+    };
+  }, [searchOpen]);
+
+  const isActive = (href: string) => path === href || path.startsWith(href + "/");
+  const pill = (active: boolean) =>
+    `inline-flex items-center gap-1 rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
+      active ? (overHero ? "bg-gold-300 text-midnight" : "bg-midnight text-ivory") : "hover:bg-current/10"
+    }`;
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-colors duration-500 ${
-        overHero ? "on-dark bg-transparent text-ivory" : "bg-ivory/95 text-midnight shadow-[0_1px_0_rgb(15_27_45/0.08)] backdrop-blur"
+      className={`fixed inset-x-0 top-0 z-50 transition-[background-color,box-shadow,color] duration-500 ${
+        overHero ? "on-dark bg-gradient-to-b from-night/60 to-transparent text-ivory" : "bg-ivory/95 text-midnight shadow-[0_1px_0_rgb(15_27_45/0.08)] backdrop-blur"
       }`}
     >
-      <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-5 py-3 md:px-8">
-        <Link href="/" className="group flex items-baseline gap-2" aria-label="Discover Egypt — home">
-          <span className="font-display text-2xl font-semibold tracking-tight" style={{ color: "inherit" }}>
-            Discover Egypt
-          </span>
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-5 md:px-8">
+        <Link href="/" className="shrink-0">
+          <Logo tone={overHero ? "light" : "dark"} />
+          <span className="sr-only"> — home</span>
         </Link>
 
-        <nav aria-label="Main" className="hidden lg:block">
+        <nav ref={navRef} aria-label="Main" className="hidden xl:block">
           <ul className="flex items-center gap-1">
-            {NAV.map((n) => {
-              const active = path.startsWith(n.href);
+            <li>
+              <Link href="/" aria-current={path === "/" ? "page" : undefined} className={pill(path === "/")}>
+                Home
+              </Link>
+            </li>
+            {NAV.map((g) => {
+              const open = menu === g.label;
+              const id = `menu-${g.label.toLowerCase().replace(/\s+/g, "-")}`;
               return (
-                <li key={n.href}>
-                  <Link
-                    href={n.href}
-                    aria-current={active ? "page" : undefined}
-                    className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${active ? "bg-current/10 underline decoration-2 underline-offset-8" : "hover:bg-current/10"}`}
+                <li key={g.label} className="relative" onMouseLeave={() => open && setMenu(null)}>
+                  <button
+                    type="button"
+                    aria-expanded={open}
+                    aria-controls={id}
+                    onClick={() => setMenu(open ? null : g.label)}
+                    onMouseEnter={() => setMenu(g.label)}
+                    className={pill(isActive(g.href))}
                   >
-                    {n.label}
-                  </Link>
+                    {g.label}
+                    <ChevronDown aria-hidden="true" size={15} strokeWidth={2} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+                  </button>
+                  <div id={id} hidden={!open} className="absolute left-1/2 top-full w-80 -translate-x-1/2 pt-3">
+                    <ul className="rounded-2xl bg-ivory p-2 text-midnight shadow-[var(--shadow-lift)] ring-1 ring-sand">
+                      <li>
+                        <Link href={g.href} className="block rounded-xl px-4 py-3 font-display text-lg hover:bg-limestone">
+                          {g.label} overview
+                        </Link>
+                      </li>
+                      {g.links.map((l) => (
+                        <li key={l.href}>
+                          <Link href={l.href} className="block rounded-xl px-4 py-2.5 hover:bg-limestone" onClick={() => setMenu(null)}>
+                            <span className="block text-sm font-semibold">{l.label}</span>
+                            {l.hint && <span className="block text-xs text-muted">{l.hint}</span>}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </li>
               );
             })}
+            <li>
+              <Link href="/my-egypt" aria-current={isActive("/my-egypt") ? "page" : undefined} className={pill(isActive("/my-egypt"))}>
+                My Egypt
+                {count > 0 && (
+                  <span className="ml-1 rounded-full bg-gold px-1.5 text-[11px] font-bold text-midnight">
+                    {count}
+                    <span className="sr-only"> saved items and stamps</span>
+                  </span>
+                )}
+              </Link>
+            </li>
           </ul>
         </nav>
 
-        <div className="flex items-center gap-2">
-          <Link href="/my-egypt" className={`btn ${overHero ? "btn-ghost" : "btn-primary"} !min-h-10 !px-4 !py-2 text-sm`}>
-            My Egypt
-            <span className="rounded-full bg-gold px-2 text-xs text-midnight" aria-label={`${stamps.length} stamps, ${favourites.length} saved`}>
-              {stamps.length + favourites.length}
-            </span>
+        <div className="flex items-center gap-1.5">
+          <button type="button" onClick={() => setSearchOpen(true)} className="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-current/10" aria-keyshortcuts="Control+K /">
+            <Search aria-hidden="true" size={20} strokeWidth={1.75} />
+            <span className="sr-only">Search the site</span>
+          </button>
+          <Link href="/account" className={`btn btn-sm hidden sm:inline-flex ${overHero ? "btn-outline-light" : "btn-ghost"}`}>
+            <UserRound aria-hidden="true" size={16} strokeWidth={1.75} />
+            Sign in
           </Link>
           <button
             type="button"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-current/10 lg:hidden"
-            aria-expanded={open}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-current/10 xl:hidden"
+            aria-expanded={mobile}
             aria-controls="mobile-nav"
-            onClick={() => setOpen((v) => !v)}
+            onClick={() => setMobile((v) => !v)}
           >
-            <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
-            <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2">
-              {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M3 7h18M3 12h18M3 17h18" />}
-            </svg>
+            <span className="sr-only">{mobile ? "Close menu" : "Open menu"}</span>
+            {mobile ? <X aria-hidden="true" size={22} /> : <Menu aria-hidden="true" size={22} />}
           </button>
         </div>
       </div>
 
-      {open && (
-        <nav id="mobile-nav" aria-label="Main mobile" className="border-t border-sand bg-ivory px-5 pb-6 text-midnight lg:hidden">
-          <ul className="flex flex-col py-2">
-            {[...NAV, { href: "/my-egypt", label: "My Egypt" }].map((n) => (
-              <li key={n.href}>
-                <Link href={n.href} aria-current={path.startsWith(n.href) ? "page" : undefined} className="font-display block border-b border-sand/60 py-4 text-2xl">
-                  {n.label}
+      {mobile && (
+        <nav id="mobile-nav" aria-label="Main mobile" className="max-h-[calc(100svh-5rem)] overflow-y-auto border-t border-sand bg-ivory px-5 pb-8 text-midnight xl:hidden">
+          <ul className="py-2">
+            {[{ label: "Home", href: "/", links: [] }, ...NAV, { label: "My Egypt", href: "/my-egypt", links: [] }].map((g) => (
+              <li key={g.href} className="border-b border-sand/60">
+                <Link href={g.href} aria-current={path === g.href ? "page" : undefined} className="font-display block py-4 text-2xl">
+                  {g.label}
                 </Link>
+                {g.links.length > 0 && (
+                  <ul className="grid grid-cols-2 gap-x-4 pb-4">
+                    {g.links.map((l) => (
+                      <li key={l.href}>
+                        <Link href={l.href} className="block py-1.5 text-sm text-muted">
+                          {l.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))}
           </ul>
+          <Link href="/account" className="btn btn-primary mt-6 w-full sm:hidden">
+            <UserRound aria-hidden="true" size={16} /> Sign in
+          </Link>
         </nav>
       )}
+
+      <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
     </header>
   );
 }

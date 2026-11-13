@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { destinations } from "@/content/destinations";
+import { destinations, INTERESTS, type Interest } from "@/content/destinations";
 import { ramadanGuide } from "@/content/practical";
 import { getEvents } from "@/lib/store";
 import { DestinationExplorer } from "@/components/DestinationExplorer";
@@ -14,8 +14,10 @@ export const metadata: Metadata = { title: "Discover", description: "Find the pa
 
 export const dynamic = "force-dynamic";
 
-export default async function DiscoverPage() {
+export default async function DiscoverPage({ searchParams }: { searchParams: Promise<{ i?: string }> }) {
   const events = await getEvents();
+  const { i } = await searchParams;
+  const initialInterests = (i ?? "").split(",").filter((x): x is Interest => (INTERESTS as readonly string[]).includes(x));
   return (
     <>
       <section className="on-dark relative overflow-hidden bg-midnight pb-20 pt-40 text-ivory">
@@ -46,7 +48,7 @@ export default async function DiscoverPage() {
       <section id="find" className="mx-auto max-w-7xl scroll-mt-24 px-5 py-24 md:px-8" aria-labelledby="find-h">
         <SectionHeading id="find-h" eyebrow="Find your Egypt" title="Your interests, matched." />
         <div className="card mt-10 p-6 md:p-10">
-          <FindYourEgypt />
+          <FindYourEgypt key={initialInterests.join(",")} initialInterests={initialInterests} />
         </div>
       </section>
 

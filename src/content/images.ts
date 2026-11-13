@@ -6,6 +6,8 @@
  */
 export type Photo = {
   src: string;
+  /** Responsive Commons thumbnails (500/960/1920 w). Absent for files served unscaled. */
+  srcSet?: string;
   alt: string;
   author: string;
   license: string;
@@ -16,9 +18,11 @@ const T = "https://thumb.wikimedia.org/wikipedia/commons/thumb";
 const U = "https://upload.wikimedia.org/wikipedia/commons";
 
 function commons(path: string, file: string, alt: string, author: string, license: string, thumb = true): Photo {
-  const src = thumb ? `${T}/${path}/${file}/1920px-${file}` : `${U}/${path}/${file}`;
+  const at = (w: number) => `${T}/${path}/${file}/${w}px-${file}`;
+  const src = thumb ? at(1920) : `${U}/${path}/${file}`;
   return {
     src,
+    srcSet: thumb ? [500, 960, 1920].map((w) => `${at(w)} ${w}w`).join(", ") : undefined,
     alt,
     author,
     license,
@@ -27,6 +31,11 @@ function commons(path: string, file: string, alt: string, author: string, licens
 }
 
 export const photos = {
+  // Hero slideshow — verified via the Commons API on 2026-11-13
+  heroGiza: commons("7/73", "After_A_Day_Of_Work_%28182691085%29.jpeg", "Camel riders crossing the Giza plateau at sunset, with the Great Pyramid on the right", "Simon Matzinger", "CC BY 3.0"),
+  heroAswan: commons("a/af", "El_Nilo_a_su_paso_por_Asu%C3%A1n%2C_Egipto%2C_2022-04-01%2C_DD_175-177_HDR.jpg", "Feluccas sailing on a golden Nile at Aswan in the evening light", "Diego Delso", "CC BY-SA 4.0"),
+  heroWhiteDesert: commons("b/bf", "White_desert_sunset_time.jpg", "Chalk rock formations of the White Desert glowing at sunset", "Ahmed Yousry Mahfouz", "CC BY-SA 4.0"),
+  luxorBalloons: commons("7/75", "Balloons_over_Luxor_at_Sunrise_%2853285143823%29.jpg", "Hot-air balloons rising over Luxor at sunrise", "Mustang Joe", "CC0"),
   cairo: commons("5/54", "Cairo_skyline%2C_Nile_River%2C_Egypt.jpg", "Cairo skyline rising above the Nile at dusk", "Vyacheslav Argenberg", "CC BY 4.0"),
   giza: commons("a/af", "All_Gizah_Pyramids.jpg", "The three Giza pyramids standing in the desert", "Ricardo Liberato", "CC BY-SA 2.0"),
   gem: commons("0/04", "Grand_Egyptian_Museum_2025.jpg", "The Grand Egyptian Museum facade near the Giza plateau", "Amr F. Nagy", "Public domain"),
@@ -35,7 +44,7 @@ export const photos = {
   aswan: commons("a/a8", "Aswan_Nile_R23.jpg", "Feluccas on the Nile at Aswan", "Marc Ryckaert", "CC BY 3.0"),
   philae: commons("8/8d", "Philae_Temple_R05.jpg", "Philae Temple on its island near Aswan", "Marc Ryckaert", "CC BY 3.0"),
   edfu: commons("1/15", "Edfu_Temple_R04.jpg", "The great pylon of Edfu Temple", "Marc Ryckaert", "CC BY-SA 4.0"),
-  abuSimbel: commons("0/02", "Templo_de_Rams%C3%A9s_II%2C_Abu_Simbel%2C_Egipto%2C_2022-04-02%2C_DD_26-28_HDR.jpg", "Colossal statues of Ramesses II at Abu Simbel", "Diego Delso", "CC BY-SA 4.0"),
+  abuSimbel: commons("0/02", "Templo_de_Rams%C3%A9s_II%2C_Abu_Simbel%2C_Egipto%2C_2022-04-02%2C_DD_26-28_HDR.jpg", "The four seated statues in the inner sanctuary of Ramesses II's Great Temple at Abu Simbel", "Diego Delso", "CC BY-SA 4.0"),
   saqqara: commons("2/2e", "Saqqara_pyramid_ver_2.jpg", "The Step Pyramid of Djoser at Saqqara", "Charles J. Sharp", "CC BY-SA 3.0"),
   alexandria: commons("8/84", "Egypt%2C_Alexandria%2C_The_Corniche_of_Alexandria%2C_Mediterranean_Sea.jpg", "Alexandria's Corniche curving along the Mediterranean", "Vyacheslav Argenberg", "CC BY 4.0"),
   bibAlex: commons("4/45", "Egypt%2C_Alexandria%2C_Bibliotheca_Alexandrina_2.jpg", "The tilted disc roof of the Bibliotheca Alexandrina", "Vyacheslav Argenberg", "CC BY 4.0"),

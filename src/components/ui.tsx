@@ -25,7 +25,7 @@ export function Photo({
       <div
         role="img"
         aria-label={label ? `${label} — photo coming soon` : "Photo coming soon"}
-        className={`grain flex items-end bg-gradient-to-br from-sand via-limestone to-sand-deep ${className}`}
+        className={`grain flex items-start bg-gradient-to-br from-sand via-limestone to-sand-deep ${className}`}
       >
         <span className="m-4 rounded-full bg-ivory/80 px-3 py-1 text-xs font-medium text-muted">Licensed photo coming soon</span>
       </div>
@@ -35,8 +35,9 @@ export function Photo({
     // eslint-disable-next-line @next/next/no-img-element -- pre-sized Commons thumbnails; see next.config.ts
     <img
       src={p.src}
+      srcSet={p.srcSet}
       alt={p.alt}
-      sizes={sizes}
+      sizes={sizes ?? "(min-width: 1024px) 50vw, 100vw"}
       loading={priority ? "eager" : "lazy"}
       fetchPriority={priority ? "high" : "auto"}
       decoding="async"
@@ -48,9 +49,18 @@ export function Photo({
 }
 
 /* ---------- Entrance animation (respects reduced motion) ---------- */
-export function Reveal({ children, delay = 0, className = "" }: { children: ReactNode; delay?: number; className?: string }) {
+/**
+ * Reduced-motion preference, read only after hydration so server and client render the same markup.
+ * Motion itself is already toned down globally by <MotionConfig reducedMotion="user">.
+ */
+export function usePrefersReducedMotion() {
   const reduce = useReducedMotion();
-  if (reduce) return <div className={className}>{children}</div>;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  return mounted && Boolean(reduce);
+}
+
+export function Reveal({ children, delay = 0, className = "" }: { children: ReactNode; delay?: number; className?: string }) {
   return (
     <motion.div
       className={className}

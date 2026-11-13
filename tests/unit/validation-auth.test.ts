@@ -41,9 +41,10 @@ describe("form validation", () => {
     expect(eventSchema.safeParse({ ...e, sourceUrl: "http://example.com" }).success).toBe(false);
     expect(eventSchema.safeParse({ ...e, sourceUrl: "https://example.com" }).success).toBe(true);
   });
-  it("needs four different featured destinations", () => {
-    expect(featuredSchema.safeParse({ slugs: ["cairo", "luxor", "aswan", "dahab"] }).success).toBe(true);
-    expect(featuredSchema.safeParse({ slugs: ["cairo", "cairo", "aswan", "dahab"] }).success).toBe(false);
+  it("needs five different featured destinations", () => {
+    expect(featuredSchema.safeParse({ slugs: ["cairo", "luxor", "aswan", "dahab", "siwa"] }).success).toBe(true);
+    expect(featuredSchema.safeParse({ slugs: ["cairo", "cairo", "aswan", "dahab", "siwa"] }).success).toBe(false);
+    expect(featuredSchema.safeParse({ slugs: ["cairo", "luxor", "aswan", "dahab"] }).success).toBe(false);
   });
 });
 
