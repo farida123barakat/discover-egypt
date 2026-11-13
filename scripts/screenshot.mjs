@@ -1,6 +1,7 @@
+// Dev helper: node scripts/screenshot.mjs <url> <out.png> [width] [height] [fullPage 0|1]  (uses CHROME_PATH or system Chrome)
 import { chromium } from "playwright";
 const [,, url, out, w = "1440", h = "900", full = "0"] = process.argv;
-const b = await chromium.launch({ executablePath: "/usr/bin/google-chrome" });
+const b = await chromium.launch({ executablePath: process.env.CHROME_PATH || "/usr/bin/google-chrome" });
 const p = await b.newPage({ viewport: { width: +w, height: +h }, reducedMotion: "reduce" });
 const errs = [];
 p.on("pageerror", (e) => errs.push(e.message));
