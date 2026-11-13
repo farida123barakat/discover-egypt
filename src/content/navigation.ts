@@ -29,6 +29,7 @@ export const NAV: NavGroup[] = [
     label: "Experience",
     href: "/experience",
     links: [
+      { href: "/hieroglyphs", label: "Decode hieroglyphs", hint: "Scan a sign, learn, take the quiz" },
       { href: "/experience#taste", label: "Taste Egypt", hint: "Dishes and where they come from" },
       { href: "/experience#decode", label: "Speak a little Egyptian" },
       { href: "/experience#etiquette", label: "Culture & etiquette" },

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen, CalendarDays, Camera, Map, PenLine, Route, Stamp, Sun, UtensilsCrossed } from "lucide-react";
+import { ArrowRight, BookOpen, CalendarDays, Map, PenLine, Route, ScanSearch, Stamp, Sun, UtensilsCrossed } from "lucide-react";
 import { destinations, getDestination } from "@/content/destinations";
 import { dishes } from "@/content/culture";
 import type { PhotoKey } from "@/content/images";
@@ -21,7 +21,7 @@ const FEATURES = [
   { href: "/plan#builder", label: "Smart trip", sub: "builder", icon: Route },
   { href: "/experience#taste", label: "Taste Egypt", sub: "dishes & stories", icon: UtensilsCrossed },
   { href: "/discover#timeline", label: "Walk through", sub: "5,000 years", icon: BookOpen },
-  { href: "/discover#photo", label: "Golden hour", sub: "photo planner", icon: Camera },
+  { href: "/hieroglyphs", label: "Hieroglyph", sub: "explorer", icon: ScanSearch },
   { href: "/my-egypt", label: "Egypt travel", sub: "passport & stamps", icon: Stamp },
 ];
 

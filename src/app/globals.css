@@ -63,15 +63,18 @@ body {
   font-feature-settings: "ss01";
 }
 
-h1,
-h2,
-h3,
-.font-display {
-  font-family: var(--font-serif);
-  font-optical-sizing: auto;
-  letter-spacing: -0.015em;
-  line-height: 1.1;
-  color: var(--color-midnight);
+@layer base {
+  /* In the base layer so colour utilities (text-ivory, etc.) can override it. */
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-serif);
+    font-optical-sizing: auto;
+    letter-spacing: -0.015em;
+    line-height: 1.1;
+    color: var(--color-midnight);
+  }
 }
 
 ::selection {
@@ -415,4 +418,11 @@ html[data-contrast="high"] .golden-grade::after {
 .on-dark .field .text-muted,
 .on-dark .field [id$="-hint"] {
   color: rgb(250 246 238 / 0.75);
+}
+
+/* Hieroglyphs (Noto Sans Egyptian Hieroglyphs, loaded on the hieroglyphs page) */
+.font-hiero {
+  font-family: "Noto Sans Egyptian Hieroglyphs", serif;
+  font-style: normal;
+  font-weight: 400;
 }

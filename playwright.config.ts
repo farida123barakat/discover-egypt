@@ -5,7 +5,11 @@ import { defineConfig, devices } from "@playwright/test";
  * CHROME_PATH lets CI or sandboxes use an installed Chrome instead of downloading one.
  */
 const PORT = 3200;
-const launchOptions = process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {};
+// Fake camera flags let the hieroglyph scanner's camera flow be tested without real hardware.
+const launchOptions = {
+  ...(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {}),
+  args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"],
+};
 
 export default defineConfig({
   testDir: "e2e",
