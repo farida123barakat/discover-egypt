@@ -6,6 +6,7 @@ import { backendMode } from "@/lib/env";
 import { supabaseForUser, supabaseService } from "@/lib/supabase/server";
 import { events as seedEvents, prices as seedPrices, type EventItem, type Price } from "@/content/practical";
 import { destinations } from "@/content/destinations";
+import { recipes as seedRecipes, type Recipe } from "@/content/food";
 import type { Itinerary } from "@/lib/validation";
 
 export type Kind = "question" | "story";
@@ -59,6 +60,7 @@ type LocalDb = {
   /** null/undefined = use the seeded content files */
   events?: EventItem[] | null;
   featured?: string[] | null;
+  recipeReview?: Record<string, { status: "draft" | "approved"; lastReviewed: string; reviewer?: string }>;
 };
 const DB_FILE = path.join(process.cwd(), ".data", "local-db.json");
 let queue: Promise<unknown> = Promise.resolve();
@@ -373,4 +375,45 @@ export async function deleteItineraryForUser(id: string) {
   const { error, count } = await sb.from("itineraries").delete({ count: "exact" }).eq("id", id).eq("user_id", auth.user.id);
   if (error) return { ok: false as const, status: 500 };
   return (count ?? 0) > 0 ? { ok: true as const } : { ok: false as const, status: 404 };
+}
+
+/* ---------------- Recipes: editorial review gate ---------------- */
+type ReviewRow = { slug: string; status: "draft" | "approved"; last_reviewed: string; reviewer: string | null };
+
+/** All recipes with their current review status. */
+export async function getRecipes(): Promise<Recipe[]> {
+  const mode = backendMode();
+  let overrides: Record<string, Recipe["review"]> = {};
+  if (mode === "supabase") {
+    const { data } = await (await supabaseForUser()).from("recipes").select("slug, status, last_reviewed, reviewer");
+    overrides = Object.fromEntries(((data ?? []) as ReviewRow[]).map((r) => [r.slug, { status: r.status, lastReviewed: r.last_reviewed, reviewer: r.reviewer ?? undefined }]));
+  } else if (mode === "local") {
+    overrides = (await readLocal()).recipeReview ?? {};
+  }
+  return seedRecipes.map((r) => (overrides[r.slug] ? { ...r, review: overrides[r.slug] } : r));
+}
+
+/**
+ * Recipes visitors may see. On the live site only approved recipes are public.
+ * In local demo mode drafts are shown too (clearly labelled) so the feature can be reviewed.
+ */
+export async function getVisibleRecipes(): Promise<Recipe[]> {
+  const all = await getRecipes();
+  return backendMode() === "local" ? all : all.filter((r) => r.review.status === "approved");
+}
+
+export async function adminSetRecipeReview(slug: string, status: "draft" | "approved", reviewer: string) {
+  if (!seedRecipes.some((r) => r.slug === slug)) return false;
+  const review = { status, lastReviewed: new Date().toISOString().slice(0, 10), reviewer };
+  const mode = backendMode();
+  if (mode === "supabase") {
+    const { error } = await supabaseService().from("recipes").update({ status, last_reviewed: review.lastReviewed, reviewer }).eq("slug", slug);
+    if (error) throw new Error("Update failed");
+    return true;
+  }
+  if (mode === "local") {
+    await writeLocal((db) => void ((db.recipeReview ??= {})[slug] = review));
+    return true;
+  }
+  throw new BackendUnavailable();
 }

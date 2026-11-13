@@ -16,6 +16,10 @@ export type MyEgypt = {
   stamps: Stamp[];
   itinerary: Itinerary | null;
   packing: PackingItem[];
+  /** favourite recipe slugs */
+  recipes: string[];
+  /** chosen food region id — never a precise location */
+  foodRegion: string | null;
 };
 
 const KEY = "discover-egypt:v1";
@@ -25,6 +29,8 @@ const empty = (): MyEgypt => ({
   stamps: [],
   itinerary: null,
   packing: packingDefaults.map((label, i) => ({ id: `d${i}`, label, done: false })),
+  recipes: [],
+  foodRegion: null,
 });
 
 let cache: MyEgypt | null = null;
@@ -88,6 +94,12 @@ export function collectStamp(slug: string): boolean {
     return { ...s, stamps: [...s.stamps, { slug, at: new Date().toISOString() }] };
   });
   return added;
+}
+export function toggleRecipe(slug: string) {
+  update((s) => ({ ...s, recipes: toggle(s.recipes, slug) }));
+}
+export function setFoodRegion(id: string | null) {
+  update((s) => ({ ...s, foodRegion: id }));
 }
 export function saveItinerary(it: Itinerary | null) {
   update((s) => ({ ...s, itinerary: it }));

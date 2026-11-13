@@ -120,3 +120,34 @@ describe("admin", () => {
     expect((await store.getEvents()).some((e) => e.id === ev.id)).toBe(false);
   });
 });
+
+describe("recipe review gate", () => {
+  it("shows drafts only in local demo mode; elsewhere only approved recipes are public", async () => {
+    const all = await store.getVisibleRecipes();
+    expect(all.length).toBeGreaterThan(0);
+    process.env.DEMO_LOCAL_MODE = "false"; // backend "none": behaves like the live site without demo data
+    try {
+      expect(await store.getVisibleRecipes()).toHaveLength(0);
+    } finally {
+      process.env.DEMO_LOCAL_MODE = "true";
+    }
+  });
+  it("only admins can approve, and approval is recorded", async () => {
+    const recipesRoute = await import("@/app/api/admin/recipes/route");
+    jar.clear();
+    expect((await recipesRoute.POST(req("/api/admin/recipes", { slug: "koshari", status: "approved" }))).status).toBe(401);
+    const r = await login.POST(req("/api/admin/login", { password: "local-admin-password-123" }));
+    jar.set("de_admin", r.cookies.get("de_admin")!.value);
+    expect((await recipesRoute.POST(req("/api/admin/recipes", { slug: "koshari", status: "approved" }))).status).toBe(200);
+    expect((await recipesRoute.POST(req("/api/admin/recipes", { slug: "not-a-recipe", status: "approved" }))).status).toBe(404);
+    const k = (await store.getRecipes()).find((x) => x.slug === "koshari")!;
+    expect(k.review.status).toBe("approved");
+    process.env.DEMO_LOCAL_MODE = "false";
+    try {
+      // With no backend there are no stored approvals, so nothing is public — fail safe.
+      expect(await store.getVisibleRecipes()).toHaveLength(0);
+    } finally {
+      process.env.DEMO_LOCAL_MODE = "true";
+    }
+  });
+});

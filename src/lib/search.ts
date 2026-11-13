@@ -1,5 +1,5 @@
 import { destinations } from "@/content/destinations";
-import { dishes } from "@/content/culture";
+import { regionalDishes } from "@/content/food";
 import { NAV } from "@/content/navigation";
 
 export type SearchItem = { title: string; href: string; kind: "Destination" | "Dish" | "Page"; text: string };
@@ -14,7 +14,7 @@ const norm = (s: string) =>
 export function buildIndex(): SearchItem[] {
   return [
     ...destinations.map((d) => ({ title: d.name, href: `/discover/${d.slug}`, kind: "Destination" as const, text: `${d.region} ${d.tagline} ${d.category} ${d.attractions.map((a) => a.name).join(" ")}` })),
-    ...dishes.map((d) => ({ title: d.name, href: `/experience#taste`, kind: "Dish" as const, text: `${d.arabic} ${d.description} ${d.ingredients.join(" ")}` })),
+    ...regionalDishes.map((d) => ({ title: d.name, href: `/taste`, kind: "Dish" as const, text: `${d.arabic} ${d.what}` })),
     ...NAV.flatMap((g) => [
       { title: `${g.label}`, href: g.href, kind: "Page" as const, text: g.links.map((l) => l.label).join(" ") },
       ...g.links.map((l) => ({ title: l.label, href: l.href, kind: "Page" as const, text: `${g.label} ${l.hint ?? ""}` })),

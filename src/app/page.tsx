@@ -19,7 +19,7 @@ const EVENT_PHOTO: Record<string, PhotoKey> = { "sun-feb": "abuSimbel", "sun-oct
 const FEATURES = [
   { href: "/discover#map", label: "Interactive", sub: "Egypt map", icon: Map },
   { href: "/plan#builder", label: "Smart trip", sub: "builder", icon: Route },
-  { href: "/experience#taste", label: "Taste Egypt", sub: "dishes & stories", icon: UtensilsCrossed },
+  { href: "/taste", label: "Taste Egypt", sub: "recipes & regions", icon: UtensilsCrossed },
   { href: "/discover#timeline", label: "Walk through", sub: "5,000 years", icon: BookOpen },
   { href: "/hieroglyphs", label: "Hieroglyph", sub: "explorer", icon: ScanSearch },
   { href: "/my-egypt", label: "Egypt travel", sub: "passport & stamps", icon: Stamp },
@@ -238,8 +238,8 @@ export default async function Home() {
               A steaming bowl of koshari for a few dollars. Ful and taameya at a breakfast cart. Molokhia at a family table. Learn the dishes, the stories behind them, and a few words of Egyptian Arabic to order like a local.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/experience#taste" className="btn btn-primary">
-                Explore the food guide <ArrowRight aria-hidden="true" size={16} />
+              <Link href="/taste" className="btn btn-primary">
+                What to eat where <ArrowRight aria-hidden="true" size={16} />
               </Link>
               <Link href="/experience#decode" className="btn btn-ghost">
                 Learn some Arabic

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { etiquette, foodSafety } from "@/content/culture";
 import { ArabicTrainer, FoodGuide, Soundscapes } from "@/components/experience";
@@ -41,6 +42,9 @@ export default function ExperiencePage() {
 
       <section id="taste" className="mx-auto max-w-7xl scroll-mt-24 px-5 py-24 md:px-8" aria-labelledby="taste-h">
         <SectionHeading id="taste-h" eyebrow="Taste Egypt" title="A food guide for curious eaters." />
+        <Link href="/taste" className="btn btn-primary mt-6">
+          What to eat in each region — and recipes
+        </Link>
         <div className="mt-10">
           <FoodGuide />
         </div>

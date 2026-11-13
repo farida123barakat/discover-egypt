@@ -387,3 +387,39 @@ export function FeaturedPicker({ options, current }: { options: { slug: string; 
     </form>
   );
 }
+
+export function RecipeReview({ items }: { items: { slug: string; name: string; status: "draft" | "approved"; lastReviewed: string; reviewer?: string }[] }) {
+  const router = useRouter();
+  const [msg, setMsg] = useState<string | null>(null);
+  async function set(slug: string, name: string, status: "draft" | "approved") {
+    if (status === "draft" && !confirm(`Unpublish "${name}"? It will disappear from the live site.`)) return;
+    const r = await send("/api/admin/recipes", "POST", { slug, status });
+    setMsg(r.ok ? `${name}: ${status === "approved" ? "approved and published" : "returned to draft"}.` : r.error ?? "Update failed");
+    if (r.ok) router.refresh();
+  }
+  return (
+    <div className="mt-4">
+      <p aria-live="polite" className="min-h-6 text-sm font-semibold">{msg}</p>
+      <ul className="divide-y divide-sand rounded-2xl bg-white px-5">
+        {items.map((r) => (
+          <li key={r.slug} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+            <span>
+              <a href={`/taste/${r.slug}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-nile underline">{r.name}</a>{" "}
+              <span className={`ml-2 rounded-full px-2 py-0.5 text-xs font-bold ${r.status === "approved" ? "bg-ok/10 text-ok" : "bg-gold/15 text-gold-ink"}`}>{r.status === "approved" ? "Published" : "Draft"}</span>
+              <span className="ml-2 text-muted">reviewed {r.lastReviewed}{r.reviewer ? ` by ${r.reviewer}` : ""}</span>
+            </span>
+            {r.status === "draft" ? (
+              <button type="button" className="btn btn-primary !min-h-9 !py-1" onClick={() => set(r.slug, r.name, "approved")}>
+                Approve & publish<span className="sr-only"> {r.name}</span>
+              </button>
+            ) : (
+              <button type="button" className="btn btn-ghost !min-h-9 !py-1" onClick={() => set(r.slug, r.name, "draft")}>
+                Unpublish<span className="sr-only"> {r.name}</span>
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}

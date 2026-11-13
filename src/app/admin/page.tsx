@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import { destinations } from "@/content/destinations";
 import { getAdmin } from "@/lib/auth";
 import { backendMode } from "@/lib/env";
-import { adminListSubmissions, adminStats, getEvents, getFeatured, getPrices } from "@/lib/store";
-import { EventManager, FeaturedPicker, LogoutButton, ModerationQueue, PhotoUpload, PriceEditor } from "@/components/admin";
+import { adminListSubmissions, adminStats, getEvents, getFeatured, getPrices, getRecipes } from "@/lib/store";
+import { EventManager, FeaturedPicker, LogoutButton, ModerationQueue, PhotoUpload, PriceEditor, RecipeReview } from "@/components/admin";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Admin", robots: { index: false, follow: false } };
@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Admin", robots: { index: false, foll
 export default async function AdminPage() {
   const admin = await getAdmin();
   if (!admin) redirect("/admin/login");
-  const [stats, pending, prices, events, featured] = await Promise.all([adminStats(), adminListSubmissions("pending"), getPrices(), getEvents(), getFeatured()]);
+  const [stats, pending, prices, events, featured, recipes] = await Promise.all([adminStats(), adminListSubmissions("pending"), getPrices(), getEvents(), getFeatured(), getRecipes()]);
 
   return (
     <div className="mx-auto max-w-7xl px-5 pb-24 pt-32 md:px-8">
@@ -59,6 +59,12 @@ export default async function AdminPage() {
       <section aria-labelledby="feat-h" className="mt-14">
         <h2 id="feat-h" className="text-3xl">Featured on the homepage</h2>
         <FeaturedPicker options={destinations.map((d) => ({ slug: d.slug, name: d.name }))} current={featured} />
+      </section>
+
+      <section aria-labelledby="rec-h" className="mt-14">
+        <h2 id="rec-h" className="text-3xl">Recipe review</h2>
+        <p className="mt-1 text-sm text-muted">AI-assisted drafts stay hidden on the live site until approved here. Check quantities, method, allergens and wording before publishing.</p>
+        <RecipeReview items={recipes.map((r) => ({ slug: r.slug, name: r.name, status: r.review.status, lastReviewed: r.review.lastReviewed, reviewer: r.review.reviewer }))} />
       </section>
 
       <section aria-labelledby="ev-h" className="mt-14">
