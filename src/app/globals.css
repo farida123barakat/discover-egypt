@@ -319,6 +319,7 @@ html[data-contrast="high"] .golden-grade::after {
 .chip[aria-pressed="true"],
 .chip[aria-selected="true"],
 .chip[aria-checked="true"],
+.chip[aria-current="page"],
 .chip:has(input:checked) {
   background: var(--color-midnight);
   border-color: var(--color-midnight);

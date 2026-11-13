@@ -12,6 +12,8 @@ function buildCsp(nonce: string, dev: boolean) {
     `connect-src 'self' ${supabase}${dev ? " ws:" : ""}`.trim(),
     "font-src 'self'",
     "media-src 'self' blob:",
+    // Embedded videos load from YouTube's privacy-enhanced domain only, and only after a click.
+    "frame-src https://www.youtube-nocookie.com",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -52,5 +54,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: [{ source: "/((?!_next/static|_next/image|favicon.ico|sounds/).*)", missing: [{ type: "header", key: "next-router-prefetch" }] }],
+  matcher: [{ source: "/((?!_next/static|_next/image|favicon.ico|sounds/|media/).*)", missing: [{ type: "header", key: "next-router-prefetch" }] }],
 };

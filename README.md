@@ -33,6 +33,7 @@ npm run dev                     # open http://localhost:3000
 | **Experience** | Food guide (price, vegetarian, background), Egyptian Arabic trainer with quiz and speech, etiquette, optional soundscapes (play only on request) |
 | **Travel Smart** | Emergency numbers, Cairo Metro and women-only carriages, walking routes on a map, accessibility (no unverified claims), fair price guide |
 | **My Egypt** | Saved places, Egypt Travel Passport stamps, itinerary, PDF download and print, packing list; optional account to sync trips |
+| **Watch & Discover** | Three original animated explainers (Great Pyramid, Nile seasons, moving Abu Simbel) with captions on by default, chapters, a follow-along transcript and sources; click-to-load YouTube embeds from creators' own channels; films on each destination page |
 | **Admin** | Moderation queue (answer and publish), price editor, event manager, featured destinations, photo upload |
 
 Full status: **[FEATURES.md](FEATURES.md)**.
@@ -56,6 +57,7 @@ Why these choices: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 | `npm run typecheck` · `npm run lint` | TypeScript and ESLint |
 | `npm test` | Unit, API and **database permission** tests (Vitest + PGlite) |
 | `npm run test:e2e` | End-to-end, accessibility and mobile tests (Playwright). If Playwright can't download a browser, set `CHROME_PATH=/path/to/chrome` |
+| `npm run media:render` | Re-render the original explainer films, captions and chapters into `public/media` (needs ffmpeg + Chrome) |
 | `npm run db:seed:generate` | Rebuild `supabase/seed.sql` from `src/content` |
 | `npm run audit:deps` | Check production dependencies for vulnerabilities |
 | `npm run check` | Typecheck, lint, test and build in one go |

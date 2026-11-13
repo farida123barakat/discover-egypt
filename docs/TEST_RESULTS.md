@@ -11,11 +11,13 @@ Recorded **13 November 2026** in a Linux sandbox (Node 22, system Google Chrome,
 | Unit tests (recommendations, budget, sun times, uploads, validation, rate limit, admin tokens) | `npm test` | ✅ |
 | API integration tests (CSRF, content type, validation, honeypot, rate limit, admin auth, moderation flow, events) | `npm test` | ✅ |
 | **Database permission tests** — real migration + seed on Postgres (PGlite), RLS as `anon` / `authenticated` | `npm test` | ✅ 12/12 |
-| **Vitest total** | `npm test` | ✅ **50 / 50** |
+| Watch & Discover: explainer timelines (ordered, non-overlapping cues inside chapters), WebVTT output, publishing rules, admin media API (auth, 5–15 min rule, scripted captions cannot be overwritten, no admin email stored) | `npm test` | ✅ |
+| **Vitest total** | `npm test` | ✅ **110 / 110** |
 | End-to-end: 8 required user journeys + access control + form errors | `npm run test:e2e` | ✅ |
-| Accessibility: axe WCAG 2.0/2.1/2.2 A+AA on 12 pages, skip link, text size | `npm run test:e2e` | ✅ |
+| Accessibility: axe WCAG 2.0/2.1/2.2 A+AA on 19 pages, skip link, text size | `npm run test:e2e` | ✅ |
 | Responsive: mobile menu + no horizontal scroll on 6 pages (Pixel 7) | `npm run test:e2e` | ✅ |
-| **Playwright total** | `npm run test:e2e` | ✅ **24 / 24** |
+| Watch & Discover: video plays, English captions track showing with cues, chapter and transcript seek, `text/vtt` and `video/mp4` served, no YouTube request before play, admin publishing flow | `npm run test:e2e` | ✅ 6 / 6 |
+| **Playwright total** | `npm run test:e2e` | ✅ **51 / 51** |
 | Production build | `npm run build` | ✅ |
 | Dependency audit | `npm audit --omit=dev` | ✅ 0 vulnerabilities |
 
@@ -85,3 +87,6 @@ $ CHROME_PATH=/usr/bin/google-chrome npm run test:e2e
 $ npm audit --omit=dev
 found 0 vulnerabilities
 ```
+
+8. **The demo database leaked state between runs** — the recipe-approval test only passed on a fresh database; it now resets the recipe first.
+9. **An admin's email was stored in publicly readable review records** (recipes) — reviews are now recorded as "Discover Egypt editor".

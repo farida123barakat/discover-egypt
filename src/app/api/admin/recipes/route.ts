@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   if (!admin) return json({ error: "Not authorised" }, 401);
   const p = await parseRequest(req, schema, { bucket: "admin", limit: 120, windowMs: 60_000 });
   if (!p.ok) return p.res;
-  const ok = await adminSetRecipeReview(p.data.slug, p.data.status, admin.email ?? "admin");
+  const ok = await adminSetRecipeReview(p.data.slug, p.data.status, "Discover Egypt editor") // no admin emails in publicly readable rows;
   if (!ok) return json({ error: "Recipe not found" }, 404);
   log("admin.recipe_review", { admin: admin.id, slug: p.data.slug, status: p.data.status });
   return json({ ok: true });

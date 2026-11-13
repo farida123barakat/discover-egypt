@@ -3,7 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { destinations, getDestination } from "@/content/destinations";
 import { photos } from "@/content/images";
-import { listPublished } from "@/lib/store";
+import { getVisibleMedia, listPublished } from "@/lib/store";
+import { MediaCard } from "@/components/media/MediaCard";
 import { AttractionList, DestinationCard, SaveButton, StampOnVisit } from "@/components/destinations";
 import { Photo, Reveal } from "@/components/ui";
 import { MiniMap } from "@/components/MiniMap";
@@ -32,6 +33,7 @@ export default async function DestinationPage({ params }: { params: Promise<{ sl
     .slice(0, 3);
   const answers = (await listPublished("question", 30)).filter((q) => q.destination === d.slug && q.answer);
   const credit = d.photo ? photos[d.photo] : null;
+  const films = (await getVisibleMedia()).filter((m) => m.destinations.includes(d.slug)).slice(0, 3);
 
   return (
     <>
@@ -117,6 +119,29 @@ export default async function DestinationPage({ params }: { params: Promise<{ sl
           </Link>
         </aside>
       </section>
+
+      {films.length > 0 && (
+        <section className="mx-auto max-w-7xl px-5 pb-20 md:px-8" aria-labelledby="watch-h">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="eyebrow">Watch &amp; discover</p>
+              <h2 id="watch-h" className="mt-2 text-4xl">
+                Before you go to {d.name}
+              </h2>
+            </div>
+            <Link href={`/watch?d=${d.slug}#films`} className="font-semibold text-nile underline underline-offset-4">
+              All films about {d.name}
+            </Link>
+          </div>
+          <ul className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {films.map((m) => (
+              <li key={m.id}>
+                <MediaCard item={m} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="bg-limestone py-20" aria-labelledby="qa-h">
         <div className="mx-auto max-w-7xl px-5 md:px-8">

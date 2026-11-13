@@ -151,3 +151,73 @@ describe("recipe review gate", () => {
     }
   });
 });
+
+describe("watch & discover", () => {
+  const embed = {
+    id: "test-embed",
+    kind: "youtube",
+    youtubeId: "abcdefghijk",
+    channel: "Test Museum",
+    captionsNote: "Creator's English captions",
+    title: "A test documentary",
+    summary: "A ten-minute test documentary about Luxor.",
+    destinations: ["luxor"],
+    period: "New Kingdom",
+    durationSec: 600,
+    credit: "Test Museum",
+    license: "Standard YouTube licence",
+    chapters: [{ start: 0, title: "Start" }, { start: 120, title: "Middle" }],
+    transcript: [],
+    sources: [{ name: "Test Museum", url: "https://example.org/video" }],
+    status: "published",
+    featured: false,
+  };
+  it("drafts are hidden when there is no demo backend", async () => {
+    expect((await store.getVisibleMedia()).length).toBeGreaterThan(0);
+    process.env.DEMO_LOCAL_MODE = "false";
+    try {
+      expect(await store.getVisibleMedia()).toHaveLength(0);
+    } finally {
+      process.env.DEMO_LOCAL_MODE = "true";
+    }
+  });
+  it("only admins can add videos, and publishing needs the checks to pass", async () => {
+    const media = await import("@/app/api/admin/media/route");
+    jar.clear();
+    expect((await media.POST(req("/api/admin/media", embed))).status).toBe(401);
+    const r = await login.POST(req("/api/admin/login", { password: "local-admin-password-123" }));
+    jar.set("de_admin", r.cookies.get("de_admin")!.value);
+
+    // Not 5–15 minutes → cannot publish
+    expect((await media.POST(req("/api/admin/media", { ...embed, durationSec: 60 }))).status).toBe(422);
+    // No captions note → cannot publish
+    expect((await media.POST(req("/api/admin/media", { ...embed, captionsNote: "" }))).status).toBe(422);
+    // Bad id
+    expect((await media.POST(req("/api/admin/media", { ...embed, youtubeId: "<script>" }))).status).toBe(422);
+    // Chapters out of order
+    expect((await media.POST(req("/api/admin/media", { ...embed, chapters: [{ start: 60, title: "B" }, { start: 10, title: "A" }] }))).status).toBe(422);
+    // But it can be saved as a draft without the checks
+    expect((await media.POST(req("/api/admin/media", { ...embed, durationSec: null, status: "draft" }))).status).toBe(200);
+    expect((await media.POST(req("/api/admin/media", embed))).status).toBe(200);
+    const saved = (await store.getMediaAll()).find((m) => m.id === embed.id)!;
+    expect(saved.status).toBe("published");
+    expect(saved.lastReviewed).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(JSON.stringify(saved)).not.toContain("@"); // no admin email stored
+    expect((await media.DELETE(req("/api/admin/media", { id: embed.id }, { method: "DELETE" }))).status).toBe(200);
+    expect((await store.getMediaAll()).some((m) => m.id === embed.id)).toBe(false);
+  });
+  it("originals take captions, chapters and length from their script, not the request", async () => {
+    const media = await import("@/app/api/admin/media/route");
+    const r = await login.POST(req("/api/admin/login", { password: "local-admin-password-123" }));
+    jar.set("de_admin", r.cookies.get("de_admin")!.value);
+    const seed = (await store.getMediaAll()).find((m) => m.id === "moving-abu-simbel")!;
+    const body = { ...seed, durationSec: 31, chapters: [{ start: 0, title: "Forged" }], transcript: [{ start: 0, text: "Forged line" }], status: "published" };
+    for (const k of ["provenance", "createdAt", "lastReviewed", "reviewer"]) delete (body as Record<string, unknown>)[k];
+    expect((await media.POST(req("/api/admin/media", body))).status).toBe(200);
+    const after = (await store.getMediaAll()).find((m) => m.id === "moving-abu-simbel")!;
+    expect(after.durationSec).toBe(seed.durationSec);
+    expect(after.chapters[0].title).toBe(seed.chapters[0].title);
+    expect(after.transcript.some((l) => l.text === "Forged line")).toBe(false);
+    expect((await media.POST(req("/api/admin/media", { ...body, explainerId: "nope" }))).status).toBe(422);
+  });
+});

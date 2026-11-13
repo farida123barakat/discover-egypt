@@ -8,6 +8,7 @@ import { events as seedEvents, prices as seedPrices, type EventItem, type Price 
 import { destinations } from "@/content/destinations";
 import { recipes as seedRecipes, type Recipe } from "@/content/food";
 import { bucketSeed, type BucketActivity } from "@/content/bucket";
+import { mediaSeed, type MediaItem } from "@/content/media";
 import type { Itinerary } from "@/lib/validation";
 
 export type Kind = "question" | "story";
@@ -63,6 +64,7 @@ type LocalDb = {
   featured?: string[] | null;
   recipeReview?: Record<string, { status: "draft" | "approved"; lastReviewed: string; reviewer?: string }>;
   bucket?: BucketActivity[] | null;
+  media?: MediaItem[] | null;
 };
 const DB_FILE = path.join(process.cwd(), ".data", "local-db.json");
 let queue: Promise<unknown> = Promise.resolve();
@@ -518,4 +520,71 @@ export async function saveMyBucket(progress: BucketProgress) {
     if (error) return { ok: false as const, status: 500 };
   }
   return { ok: true as const };
+}
+
+/* ---------------- Watch & Discover: media items (admin-managed) ---------------- */
+type MediaRow = { id: string; data: MediaItem };
+
+/** Every media item including drafts — admin use. */
+export async function getMediaAll(): Promise<MediaItem[]> {
+  const mode = backendMode();
+  if (mode === "supabase") {
+    const { data } = await (await supabaseForUser()).from("media_items").select("id, data").order("created_at");
+    if (data?.length) return (data as MediaRow[]).map((r) => ({ ...r.data, id: r.id }));
+  }
+  if (mode === "local") {
+    const db = await readLocal();
+    if (db.media) return db.media;
+  }
+  return mediaSeed;
+}
+
+/**
+ * What visitors see. On the live site only published items; in local demo mode drafts are
+ * shown too, clearly labelled, so the feature can be reviewed before anything is approved.
+ */
+export async function getVisibleMedia(): Promise<MediaItem[]> {
+  const all = await getMediaAll();
+  const list = backendMode() === "local" ? all : all.filter((m) => m.status === "published");
+  return list.sort((a, b) => Number(b.featured) - Number(a.featured));
+}
+
+export async function adminUpsertMedia(m: MediaItem) {
+  const mode = backendMode();
+  if (mode === "supabase") {
+    const { error } = await supabaseService()
+      .from("media_items")
+      .upsert({ id: m.id, title: m.title, kind: m.kind, destinations: m.destinations, status: m.status, featured: m.featured, data: m, last_reviewed: m.lastReviewed });
+    if (error) throw new Error("Save failed");
+    return;
+  }
+  if (mode === "local") {
+    await writeLocal((db) => {
+      const list = db.media ?? [...mediaSeed];
+      const i = list.findIndex((x) => x.id === m.id);
+      if (i >= 0) list[i] = { ...m, createdAt: list[i].createdAt };
+      else list.push(m);
+      db.media = list;
+    });
+    return;
+  }
+  throw new BackendUnavailable();
+}
+
+export async function adminDeleteMedia(id: string) {
+  const mode = backendMode();
+  if (mode === "supabase") {
+    const { error, count } = await supabaseService().from("media_items").delete({ count: "exact" }).eq("id", id);
+    if (error) throw new Error("Delete failed");
+    return (count ?? 0) > 0;
+  }
+  if (mode === "local") {
+    return writeLocal((db) => {
+      const list = db.media ?? [...mediaSeed];
+      const next = list.filter((x) => x.id !== id);
+      db.media = next;
+      return next.length !== list.length;
+    });
+  }
+  throw new BackendUnavailable();
 }

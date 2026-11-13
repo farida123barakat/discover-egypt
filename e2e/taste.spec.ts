@@ -71,6 +71,13 @@ test.describe("Taste Egypt", () => {
     await page.getByLabel("Password").fill("e2e-admin-password-123");
     await page.getByRole("button", { name: "Sign in" }).click();
     await expect(page.getByRole("heading", { name: "Recipe review" })).toBeVisible();
+    // The demo database persists between runs: start from a draft.
+    const unpublish = page.getByRole("button", { name: /Unpublish Karkade|Return to draft Karkade/ });
+    if (await unpublish.count()) {
+      page.once("dialog", (d) => d.accept());
+      await unpublish.click();
+      await expect(page.getByText("Karkade: returned to draft.")).toBeVisible();
+    }
     await page.getByRole("button", { name: "Approve & publish Karkade" }).click();
     await expect(page.getByText("Karkade: approved and published.")).toBeVisible();
     await page.goto("/taste/karkade");

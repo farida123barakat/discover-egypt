@@ -9,6 +9,7 @@ export const NAV: NavGroup[] = [
     links: [
       { href: "/discover#find", label: "Find your Egypt", hint: "A quiz that matches you with places" },
       { href: "/bucket-list", label: "Egypt bucket list", hint: "Tick off unforgettable experiences" },
+      { href: "/watch", label: "Watch & discover", hint: "Short films with captions and sources" },
       { href: "/discover#map", label: "Interactive map", hint: "Every destination, filtered your way" },
       { href: "/discover#beyond", label: "Beyond the pyramids", hint: "Lesser-known places" },
       { href: "/discover#timeline", label: "Walk through time", hint: "5,000 years in one timeline" },

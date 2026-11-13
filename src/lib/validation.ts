@@ -135,6 +135,46 @@ export const bucketProgressSchema = z.record(
   z.object({ added: z.boolean(), done: z.boolean(), fav: z.boolean(), doneAt: z.string().datetime().optional() }),
 ).refine((r) => Object.keys(r).length <= 200, "Too many entries");
 
+const seconds = z.number().int().min(0).max(4 * 3600);
+export const mediaSchema = z
+  .object({
+    id: z.string().regex(/^[a-z0-9-]{3,60}$/, "Use lowercase letters, numbers and hyphens"),
+    title: text(5, 140, "Title"),
+    summary: text(10, 600, "Summary"),
+    kind: z.enum(["original", "youtube"]),
+    destinations: z.array(z.enum(slugs)).min(1, "Choose at least one destination").max(6),
+    period: text(2, 80, "Period"),
+    durationSec: z.number().int().min(30, "At least 30 seconds").max(4 * 3600).nullable(),
+    explainerId: z.string().regex(/^[a-z0-9-]{3,60}$/).optional(),
+    youtubeId: z.string().regex(/^[A-Za-z0-9_-]{11}$/, "A YouTube id has 11 letters, digits, - or _").optional(),
+    channel: optionalText(80).optional(),
+    captionsNote: optionalText(160).optional(),
+    credit: text(2, 120, "Credit"),
+    license: text(2, 200, "Licence"),
+    chapters: z.array(z.object({ start: seconds, title: text(1, 80, "Chapter title") })).max(40),
+    transcript: z.array(z.object({ start: seconds, text: text(1, 500, "Transcript line") })).max(2000),
+    sources: z.array(z.object({ name: text(2, 140, "Source name"), url: httpsUrl })).max(20),
+    status: z.enum(["draft", "published"]),
+    featured: z.boolean(),
+  })
+  .refine((m) => m.kind !== "youtube" || !!m.youtubeId, { message: "Add the YouTube video id", path: ["youtubeId"] })
+  .refine((m) => m.chapters.every((c, i, a) => i === 0 || c.start > a[i - 1].start), { message: "Chapters must be in time order", path: ["chapters"] })
+  .refine((m) => !m.durationSec || m.chapters.every((c) => c.start < m.durationSec!), { message: "A chapter starts after the end of the video", path: ["chapters"] });
+
+/** Parse "0:00 Title" lines (one per line) into chapters or transcript lines. */
+export function parseTimedLines(raw: string): { start: number; text: string }[] | { error: string } {
+  const out: { start: number; text: string }[] = [];
+  for (const [i, line] of raw.split(/\r?\n/).entries()) {
+    if (!line.trim()) continue;
+    const m = line.trim().match(/^(?:(\d{1,2}):)?(\d{1,2}):(\d{2})\s+(.+)$/);
+    if (!m) return { error: `Line ${i + 1}: start with a time like 1:05 or 1:02:30` };
+    const [, h, mm, ss, rest] = m;
+    if (Number(ss) > 59 || (h && Number(mm) > 59)) return { error: `Line ${i + 1}: that time is not valid` };
+    out.push({ start: Number(h ?? 0) * 3600 + Number(mm) * 60 + Number(ss), text: rest.trim() });
+  }
+  return out;
+}
+
 export type Itinerary = z.infer<typeof itinerarySchema>;
 
 export function fieldErrors(err: z.ZodError) {
