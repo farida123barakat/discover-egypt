@@ -19,6 +19,7 @@ export function buildIndex(): SearchItem[] {
       { title: `${g.label}`, href: g.href, kind: "Page" as const, text: g.links.map((l) => l.label).join(" ") },
       ...g.links.map((l) => ({ title: l.label, href: l.href, kind: "Page" as const, text: `${g.label} ${l.hint ?? ""}` })),
     ]),
+    { title: "My Memory Hunt album", href: "/memory-hunt/album", kind: "Page", text: "memories postcards album pdf print photos" },
     { title: "My Egypt", href: "/my-egypt", kind: "Page", text: "saved favourites passport stamps itinerary pdf packing" },
     { title: "Privacy policy", href: "/privacy", kind: "Page", text: "data cookies" },
   ];

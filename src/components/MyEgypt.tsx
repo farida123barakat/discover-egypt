@@ -9,6 +9,37 @@ import type { Itinerary } from "@/lib/validation";
 import { DestinationCard } from "./destinations";
 import { PackingList } from "./planning";
 import { Photo, formatDate } from "./ui";
+import { huntStats } from "@/content/hunt";
+import { completedChallenges, useMemories } from "@/lib/memories";
+
+/** Memory Hunt at a glance. Memories are kept in IndexedDB, separately from the rest of My Egypt. */
+function MemoryHuntSummary() {
+  const { status, memories } = useMemories();
+  const stats = huntStats(completedChallenges(memories), memories.length);
+  return (
+    <section aria-labelledby="hunt-me-h" className="card flex flex-wrap items-center justify-between gap-6 p-7">
+      <div>
+        <p className="eyebrow">Egypt Memory Hunt</p>
+        <h2 id="hunt-me-h" className="mt-2 text-4xl">
+          My memories
+        </h2>
+        <p className="mt-2 text-muted">
+          {status === "ready" && memories.length
+            ? `${memories.length} ${memories.length === 1 ? "memory" : "memories"} · ${stats.completed} of ${stats.total} challenges · ${stats.points} points`
+            : "Turn moments from your trip into postcards: complete challenges, save memories, download a print-ready album."}
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-3">
+        <Link href="/memory-hunt/album" className="btn btn-primary">
+          Open my album
+        </Link>
+        <Link href="/memory-hunt" className="btn btn-ghost">
+          Browse challenges
+        </Link>
+      </div>
+    </section>
+  );
+}
 
 export async function itineraryPdf(it: Itinerary) {
   const { jsPDF } = await import("jspdf");
@@ -161,6 +192,8 @@ export function MyEgyptDashboard() {
           <Empty title="No itinerary yet" body="Build a day-by-day plan with the Smart Trip Builder and it will appear here." href="/plan" cta="Start planning" />
         )}
       </section>
+
+      <MemoryHuntSummary />
 
       <section aria-labelledby="fav-h">
         <h2 id="fav-h" className="text-4xl">

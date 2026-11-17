@@ -21,6 +21,8 @@ npm run dev                     # open http://localhost:3000
 
 **Example journey:** take the quiz on **Discover** → build a trip on **Plan** → save it → download the PDF in **My Egypt** → ask a question on **Ask a Local** → publish it from **/admin**.
 
+**Memory Hunt:** pick a challenge on **/memory-hunt** → save a memory → download the postcard PDF from **/memory-hunt/album**. To try printing, add and verify a partner under **Printing partners** in `/admin` first; the album then offers "Print at a partner".
+
 ---
 
 ## What is inside
@@ -31,10 +33,14 @@ npm run dev                     # open http://localhost:3000
 | **Discover** | Preference quiz with reasons for each match, interactive Leaflet map with filters, *Walk Through Time* timeline (with a kids' version), climate & crowd chart, **Golden Hour Finder**, events calendar, Ramadan guide |
 | **Plan** | Smart Trip Builder (day-by-day timeline, reorder activities), budget calculator (4 styles, 5 categories), live currency converter with manual fallback, packing list, suggested routes |
 | **Experience** | Food guide (price, vegetarian, background), Egyptian Arabic trainer with quiz and speech, etiquette, optional soundscapes (play only on request) |
+| **Hieroglyphics Explorer** | Photograph or upload a single sign and get an honest "most likely / not sure" match (runs on the device, 57-sign library), beginner lessons, a quiz, a draw-the-sign challenge, your name in a cartouche |
+| **Taste Egypt by region** | Pick a region (or share a rounded location) to see what to eat there; recipes you can filter, save, scale and print; recipes stay hidden until an editor approves them in `/admin` |
+| **Egypt bucket list** | 18 unforgettable experiences to add and tick off, badges, progress kept on the device and optionally synced to an account; admins create, publish and feature activities |
+| **Egypt Memory Hunt** | 20 challenges (landmarks, hieroglyphs, food, markets, sunsets, hidden details) filtered by place and who you travel with; save a memory with a photo, caption and story (stored privately on the device, GPS removed); points and achievements; every memory becomes a print-ready A6 postcard (5 designs, optional Arabic calligraphy); a **Memory Passport** booklet that prints like a passport (stamps, photo pages, gold-seal achievements) as an A4 fold-and-staple PDF or print-shop pages; postcard album PDF; optional cloud backup; collect a print at a verified partner with a collection code and QR code |
 | **Travel Smart** | Emergency numbers, Cairo Metro and women-only carriages, walking routes on a map, accessibility (no unverified claims), fair price guide |
 | **My Egypt** | Saved places, Egypt Travel Passport stamps, itinerary, PDF download and print, packing list; optional account to sync trips |
 | **Watch & Discover** | Three original animated explainers (Great Pyramid, Nile seasons, moving Abu Simbel) with captions on by default, chapters, a follow-along transcript and sources; click-to-load YouTube embeds from creators' own channels; films on each destination page |
-| **Admin** | Moderation queue (answer and publish), price editor, event manager, featured destinations, photo upload |
+| **Admin** | Moderation queue (answer and publish), price editor, event manager, featured destinations, photo upload, recipe review, bucket-list and video managers, printing partners and the postcard print queue |
 
 Full status: **[FEATURES.md](FEATURES.md)**.
 
@@ -61,6 +67,8 @@ Why these choices: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 | `npm run db:seed:generate` | Rebuild `supabase/seed.sql` from `src/content` |
 | `npm run audit:deps` | Check production dependencies for vulnerabilities |
 | `npm run check` | Typecheck, lint, test and build in one go |
+
+CI runs `npm run check`, the Playwright suite and the dependency audit on every push and pull request (`.github/workflows/ci.yml`). Dependabot opens weekly update PRs.
 
 Latest results: **[docs/TEST_RESULTS.md](docs/TEST_RESULTS.md)**.
 
