@@ -91,7 +91,7 @@ test("a reset for an unknown address looks exactly the same", async ({ page }) =
 test("the new-password page is only for someone who came from a reset link", async ({ page }) => {
   await page.goto("/account/new-password");
   await expect(page).toHaveURL(/\/account\?error=reset/);
-  await expect(page.getByRole("alert")).toContainText("That password-reset link has expired");
+  await expect(page.getByRole("alert").filter({ hasText: "That" })).toContainText("That password-reset link has expired");
 });
 
 test("sign in with an emailed link instead of a password", async ({ page }) => {
@@ -107,7 +107,7 @@ test("sign in with an emailed link instead of a password", async ({ page }) => {
 test("a used or broken sign-in link explains what happened", async ({ page }) => {
   await page.goto("/auth/callback?code=not-a-real-code&next=/account");
   await expect(page).toHaveURL(/\/account\?error=link/);
-  await expect(page.getByRole("alert")).toContainText("That link has expired");
+  await expect(page.getByRole("alert").filter({ hasText: "That" })).toContainText("That link has expired");
   // and the callback never redirects off the site
   await page.goto("/auth/callback?code=x&next=//evil.example");
   await expect(page).toHaveURL(/localhost:3200\/account/);
