@@ -28,11 +28,12 @@ beforeAll(async () => {
   db = new PGlite();
   await db.exec(readFileSync(path.join(__dirname, "supabase-stub.sql"), "utf8"));
   const migDir = path.join(root, "supabase", "migrations");
+  // Supabase grants table privileges to these roles by default (on creation), so a migration can still
+  // revoke some (e.g. column-level grants on print_partners). RLS then decides row access.
+  await db.exec(`grant usage on schema public to anon, authenticated;
+    alter default privileges in schema public grant select, insert, update, delete on tables to anon, authenticated;`);
   for (const f of readdirSync(migDir).sort()) await db.exec(readFileSync(path.join(migDir, f), "utf8"));
   await db.exec(readFileSync(path.join(root, "supabase", "seed.sql"), "utf8"));
-  // Supabase grants table privileges to these roles by default; RLS then decides row access.
-  await db.exec(`grant usage on schema public to anon, authenticated;
-    grant select, insert, update, delete on all tables in schema public to anon, authenticated;`);
   await db.exec(`insert into auth.users (id, email) values ('${ALICE}','a@example.com'),('${BOB}','b@example.com'),('${ADMIN}','admin@example.com');
     update public.user_profiles set role = 'admin' where id = '${ADMIN}';`);
 }, 60_000);
@@ -113,5 +114,110 @@ describe("row level security", () => {
     await as("anon", null, () => db.exec(`insert into public.contact_messages (name,email,topic,message) values ('Ana','a@example.com','other','Hello there, a test message')`));
     const r = await as("anon", null, () => db.query("select * from public.contact_messages"));
     expect(r.rows).toHaveLength(0);
+  });
+});
+
+describe("Memory Hunt: private memories", () => {
+  const M1 = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+  const M2 = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+
+  it("lets a visitor back up a memory, and only they can see it — not other visitors, not admins", async () => {
+    await as("authenticated", ALICE, () => db.exec(`insert into public.memories (id,user_id,challenge_id,destination_slug,caption,template,photo_path) values ('${M1}','${ALICE}','giza-scale','giza','Tiny me','papyrus','${ALICE}/${M1}.jpg')`));
+    expect((await as("authenticated", ALICE, () => db.query("select id from public.memories"))).rows).toHaveLength(1);
+    expect((await as("authenticated", BOB, () => db.query("select id from public.memories"))).rows).toHaveLength(0);
+    expect((await as("authenticated", ADMIN, () => db.query("select id from public.memories"))).rows).toHaveLength(0);
+    expect((await as("anon", null, () => db.query("select id from public.memories"))).rows).toHaveLength(0);
+  });
+
+  it("stops anyone writing into, changing or deleting another visitor's memories", async () => {
+    await expect(as("authenticated", BOB, () => db.exec(`insert into public.memories (id,user_id,template) values ('${M2}','${ALICE}','nile')`))).rejects.toThrow();
+    await as("authenticated", BOB, () => db.exec(`update public.memories set caption = 'hacked'`));
+    await as("authenticated", BOB, () => db.exec(`delete from public.memories`));
+    await expect(as("anon", null, () => db.exec(`insert into public.memories (id,user_id,template) values ('${M2}','${ALICE}','nile')`))).rejects.toThrow();
+    const r = await db.query<{ caption: string }>("select caption from public.memories");
+    expect(r.rows).toEqual([{ caption: "Tiny me" }]);
+  });
+
+  it("only allows a photo path inside the owner's own folder, and enforces lengths and templates", async () => {
+    await expect(as("authenticated", BOB, () => db.exec(`insert into public.memories (id,user_id,template,photo_path) values ('${M2}','${BOB}','nile','${ALICE}/${M2}.jpg')`))).rejects.toThrow();
+    await expect(as("authenticated", BOB, () => db.exec(`insert into public.memories (id,user_id,template) values ('${M2}','${BOB}','comic-sans')`))).rejects.toThrow();
+    await expect(as("authenticated", BOB, () => db.exec(`insert into public.memories (id,user_id,template,caption) values ('${M2}','${BOB}','nile','${"x".repeat(121)}')`))).rejects.toThrow();
+  });
+
+  it("keeps memory photos in each visitor's own storage folder", async () => {
+    await as("authenticated", ALICE, () => db.exec(`insert into storage.objects (bucket_id,name) values ('memories','${ALICE}/${M1}.jpg')`));
+    await expect(as("authenticated", BOB, () => db.exec(`insert into storage.objects (bucket_id,name) values ('memories','${ALICE}/planted.jpg')`))).rejects.toThrow();
+    await expect(as("anon", null, () => db.exec(`insert into storage.objects (bucket_id,name) values ('memories','${ALICE}/anon.jpg')`))).rejects.toThrow();
+    expect((await as("authenticated", BOB, () => db.query("select name from storage.objects where bucket_id = 'memories'"))).rows).toHaveLength(0);
+    expect((await as("authenticated", ALICE, () => db.query("select name from storage.objects where bucket_id = 'memories'"))).rows).toHaveLength(1);
+    await as("authenticated", BOB, () => db.exec(`delete from storage.objects where bucket_id = 'memories'`));
+    expect((await db.query("select name from storage.objects where bucket_id = 'memories'")).rows).toHaveLength(1);
+  });
+
+  it("creates the memories and print-jobs buckets as private, JPEG only", async () => {
+    const r = await db.query<{ id: string; public: boolean; allowed_mime_types: string[] }>("select id, public, allowed_mime_types from storage.buckets where id in ('memories','print-jobs') order by id");
+    expect(r.rows.map((b) => [b.id, b.public, b.allowed_mime_types])).toEqual([
+      ["memories", false, ["image/jpeg"]],
+      ["print-jobs", false, ["image/jpeg"]],
+    ]);
+  });
+});
+
+describe("Memory Hunt: printing partners and requests", () => {
+  const LIVE = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+  const DRAFT = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
+  const REQ = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+
+  beforeAll(async () => {
+    await db.exec(`insert into public.print_partners (id,name,kind,destination_slug,address,verification_note,verified,verified_on,active) values
+      ('${LIVE}','Nile View Hotel','hotel','aswan','Corniche el-Nil, Aswan','Signed letter from the manager',true,'2026-11-12',true),
+      ('${DRAFT}','Draft Cafe','cafe','luxor','Television Street, Luxor',null,false,null,false)`);
+  });
+
+  it("refuses an active partner that isn't verified, or a verified one without a date", async () => {
+    await expect(db.exec(`insert into public.print_partners (name,kind,destination_slug,address,active) values ('Bad','cafe','luxor','Somewhere 1',true)`)).rejects.toThrow();
+    await expect(db.exec(`insert into public.print_partners (name,kind,destination_slug,address,verified) values ('Bad','cafe','luxor','Somewhere 1',true)`)).rejects.toThrow();
+  });
+
+  it("shows visitors only partners that are verified and active", async () => {
+    const r = await as("anon", null, () => db.query<{ id: string }>("select id from public.print_partners"));
+    expect(r.rows.map((x) => x.id)).toEqual([LIVE]);
+    const a = await as("authenticated", BOB, () => db.query<{ id: string }>("select id from public.print_partners"));
+    expect(a.rows.map((x) => x.id)).toEqual([LIVE]);
+  });
+
+  it("hides the internal verification note from everyone but the server", async () => {
+    await expect(as("anon", null, () => db.query("select verification_note from public.print_partners"))).rejects.toThrow(/permission denied/);
+    await expect(as("authenticated", BOB, () => db.query("select * from public.print_partners"))).rejects.toThrow(/permission denied/);
+  });
+
+  it("does not let visitors create or change partners", async () => {
+    await expect(as("anon", null, () => db.exec(`insert into public.print_partners (name,kind,destination_slug,address) values ('Mine','cafe','luxor','Somewhere 1')`))).rejects.toThrow();
+    await as("authenticated", BOB, () => db.exec(`update public.print_partners set active = true, verified = true, verified_on = '2026-01-01' where id = '${DRAFT}'`));
+    expect((await db.query<{ active: boolean }>(`select active from public.print_partners where id = '${DRAFT}'`)).rows[0].active).toBe(false);
+  });
+
+  it("keeps print requests server-side: visitors can't read others' or create their own directly", async () => {
+    await db.exec(`insert into public.print_requests (id,code,partner_id,user_id,cancel_token_hash,image_path) values ('${REQ}','DE-7K3M-Q9TX','${LIVE}','${ALICE}','${"a".repeat(64)}','${REQ}.jpg')`);
+    expect((await as("anon", null, () => db.query("select id from public.print_requests"))).rows).toHaveLength(0);
+    expect((await as("authenticated", BOB, () => db.query("select id from public.print_requests"))).rows).toHaveLength(0);
+    expect((await as("authenticated", ALICE, () => db.query("select id from public.print_requests"))).rows).toHaveLength(1); // their own
+    expect((await as("authenticated", ADMIN, () => db.query("select id from public.print_requests"))).rows).toHaveLength(1);
+    await expect(as("anon", null, () => db.exec(`insert into public.print_requests (code,partner_id,cancel_token_hash) values ('DE-AAAA-BBBB','${LIVE}','${"b".repeat(64)}')`))).rejects.toThrow();
+    await as("authenticated", ALICE, () => db.exec(`update public.print_requests set status = 'ready'`));
+    expect((await db.query<{ status: string }>(`select status from public.print_requests where id = '${REQ}'`)).rows[0].status).toBe("requested");
+  });
+
+  it("only accepts well-formed collection codes and known statuses", async () => {
+    await expect(db.exec(`insert into public.print_requests (code,partner_id,cancel_token_hash) values ('DE-0000-1111','${LIVE}','${"c".repeat(64)}')`)).rejects.toThrow();
+    await expect(db.exec(`insert into public.print_requests (code,partner_id,cancel_token_hash,status) values ('DE-CCCC-DDDD','${LIVE}','${"c".repeat(64)}','lost')`)).rejects.toThrow();
+    await expect(db.exec(`insert into public.print_requests (code,partner_id,cancel_token_hash) values ('DE-7K3M-Q9TX','${LIVE}','${"d".repeat(64)}')`)).rejects.toThrow(); // codes are unique
+  });
+
+  it("gives visitors no access to postcard images awaiting print", async () => {
+    await db.exec(`insert into storage.objects (bucket_id,name) values ('print-jobs','${REQ}.jpg')`);
+    expect((await as("anon", null, () => db.query("select name from storage.objects where bucket_id = 'print-jobs'"))).rows).toHaveLength(0);
+    expect((await as("authenticated", ALICE, () => db.query("select name from storage.objects where bucket_id = 'print-jobs'"))).rows).toHaveLength(0);
+    await expect(as("authenticated", ALICE, () => db.exec(`insert into storage.objects (bucket_id,name) values ('print-jobs','${ALICE}/x.jpg')`))).rejects.toThrow();
   });
 });

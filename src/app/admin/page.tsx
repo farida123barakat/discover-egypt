@@ -8,6 +8,8 @@ import { MediaManager } from "@/components/admin-media";
 import { explainers } from "@/content/explainers";
 import { EventManager, FeaturedPicker, LogoutButton, ModerationQueue, PhotoUpload, PriceEditor, RecipeReview, BucketManager } from "@/components/admin";
 import { photos } from "@/content/images";
+import { PrintPartnerManager, PrintRequestQueue, type AdminPrintRequest } from "@/components/admin-print";
+import { adminListPartners, adminListPrintRequests, sweepPrintJobs } from "@/lib/print-store";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Admin", robots: { index: false, follow: false } };
@@ -15,7 +17,29 @@ export const metadata: Metadata = { title: "Admin", robots: { index: false, foll
 export default async function AdminPage() {
   const admin = await getAdmin();
   if (!admin) redirect("/admin/login");
-  const [stats, pending, prices, events, featured, recipes, bucket, media] = await Promise.all([adminStats(), adminListSubmissions("pending"), getPrices(), getEvents(), getFeatured(), getRecipes(), getBucketAll(), getMediaAll()]);
+  await sweepPrintJobs().catch(() => {}); // delete images of expired print jobs before listing them
+  const [stats, pending, prices, events, featured, recipes, bucket, media, partners, printRequests] = await Promise.all([
+    adminStats(),
+    adminListSubmissions("pending"),
+    getPrices(),
+    getEvents(),
+    getFeatured(),
+    getRecipes(),
+    getBucketAll(),
+    getMediaAll(),
+    adminListPartners(),
+    adminListPrintRequests(),
+  ]);
+  // Only what the queue needs: never send cancel-token hashes or storage paths to the browser.
+  const queue: AdminPrintRequest[] = printRequests.map((r) => ({
+    id: r.id,
+    code: r.code,
+    partnerName: partners.find((p) => p.id === r.partnerId)?.name ?? "Unknown partner",
+    status: r.status,
+    hasImage: !!r.imagePath,
+    createdAt: r.createdAt,
+    expiresAt: r.expiresAt,
+  }));
 
   return (
     <div className="mx-auto max-w-7xl px-5 pb-24 pt-32 md:px-8">
@@ -80,6 +104,18 @@ export default async function AdminPage() {
         <h2 id="rec-h" className="text-3xl">Recipe review</h2>
         <p className="mt-1 text-sm text-muted">AI-assisted drafts stay hidden on the live site until approved here. Check quantities, method, allergens and wording before publishing.</p>
         <RecipeReview items={recipes.map((r) => ({ slug: r.slug, name: r.name, status: r.review.status, lastReviewed: r.review.lastReviewed, reviewer: r.review.reviewer }))} />
+      </section>
+
+      <section aria-labelledby="prq-h" className="mt-14">
+        <h2 id="prq-h" className="text-3xl">Postcard print requests</h2>
+        <p className="mt-1 text-sm text-muted">Move each job along as the partner works on it: requested → printing → ready → collected. Collected, cancelled and expired jobs have their postcard image deleted automatically.</p>
+        <PrintRequestQueue requests={queue} />
+      </section>
+
+      <section aria-labelledby="pp-h" className="mt-14">
+        <h2 id="pp-h" className="text-3xl">Printing partners</h2>
+        <p className="mt-1 text-sm text-muted">Hotels, museums, tourism offices or cafés that print Memory Hunt postcards for visitors. Only verify a partner after confirming the arrangement with them directly, and note how you did it.</p>
+        <PrintPartnerManager partners={partners} destinations={destinations.map((d) => ({ slug: d.slug, name: d.name }))} />
       </section>
 
       <section aria-labelledby="ev-h" className="mt-14">

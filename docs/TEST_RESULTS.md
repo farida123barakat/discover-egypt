@@ -1,5 +1,31 @@
 # Test results
 
+> **Needs a fresh run.** Everything below was recorded on 13 November, before the Memory Hunt work. On 17 November the Memory Hunt pages and these new suites were added. The workspace they were written in could not install npm packages, so `npm run check` and Playwright could not run. Parts were checked another way (see "Partial check, 17 November" below):
+>
+> | Suite | File | Covers |
+> | --- | --- | --- |
+> | Unit | `tests/unit/memory-hunt.test.ts` | challenge content, points and achievements, postcard size and text wrapping, EXIF/GPS removal, collection codes, partner rules, tickets stored on the device |
+> | API | `tests/api/print.test.ts` | same-origin check, 5-per-hour limit, consent, JPEG only, status without personal data, wrong cancel token (403), closed request (409), admin 401, partner in use (409), expiry sweep and cron secret, 501 without a back end |
+> | Database | `tests/db/rls.test.ts` (two new `describe` blocks) | owner-only memories, storage folder policies, partners visible only when verified and active, verification note hidden, print requests server-side only |
+> | End-to-end | `e2e/memory-hunt.spec.ts`, plus 4 pages in `a11y.spec.ts` and 3 in `responsive.spec.ts` | pick a challenge → capture → album → both PDFs → edit → delete; admin partner setup → visitor print request → status → cancel |
+>
+> The database test setup also changed: table privileges are now granted the way Supabase does it (as default privileges, before the migrations run), so a migration's column-level `revoke` is tested as it will behave in production.
+>
+> Run `npm run check` and `npm run test:e2e`, or let CI (`.github/workflows/ci.yml`) run them, then replace this note and the tables below with the new results.
+
+### Partial check, 17 November
+
+Without the project's dependencies, the test files were run with a small stand-in for Vitest and for the few Next.js classes the routes use (`NextRequest`, `NextResponse`, `cookies()`). Everything else was the real code, including zod 4 validation.
+
+| Suite | Result | Notes |
+| --- | --- | --- |
+| `tests/unit/memory-hunt.test.ts` | 29 / 32 passed | The 3 photo-processing tests need jsdom and were not run |
+| `tests/api/print.test.ts` | 18 / 18 passed | Real route handlers in local demo mode |
+| `tests/api/routes.test.ts` (existing) | 15 / 15 passed | Run through the same stand-in as a cross-check |
+| `tests/db/rls.test.ts` | 24 / 24 passed | On a real **PostgreSQL 16** server instead of PGlite (through `psql`). A deliberate break (dropping the `verification_note` revoke and opening the memories select policy) made 4 tests fail, as it should |
+| TypeScript | No errors in the new or changed files | Checked with stand-in type declarations for packages that weren't installed, so JSX props were not type-checked |
+| Lint, build, Playwright (e2e, axe, mobile) | **Not run** | Need the full install |
+
 Recorded **13 November 2026** in a Linux sandbox (Node 22, system Google Chrome, production build, local demo mode).
 
 ## Summary
@@ -38,6 +64,8 @@ Recorded **13 November 2026** in a Linux sandbox (Node 22, system Google Chrome,
 - Screen-reader testing with NVDA/VoiceOver, and Safari/Firefox. Recommended before launch.
 
 ## Raw output
+
+The log below is from an **earlier run (12 November, 23:20 UTC)**, made before several suites were added. That is why it shows 50 Vitest and 24 Playwright tests while the summary above shows 110 and 51. The full log of the run behind the summary is not in the repository. The next run should paste its complete output here.
 
 ```
 Recorded 2026-11-12T23:20Z on Node v22.23.4, Chrome (system)
