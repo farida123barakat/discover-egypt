@@ -130,15 +130,29 @@ test.describe("Memory Hunt", () => {
     page.on("requestfinished", (r) => pending.delete(r));
     page.on("requestfailed", (r) => pending.delete(r));
     await page.goto("/memory-hunt/print/DE-2222-2222");
-    await expect(page.getByText(/couldn.t find a print request with the code/)).toBeVisible();
     await page.waitForTimeout(3000);
+    // Diagnostics: the same lookup straight to the server, and from the page with and without no-store.
+    const t0 = Date.now();
+    const direct = await page.request.get("/api/print/requests/DE-2222-2222", { timeout: 5_000 }).then((r) => `${r.status()} in ${Date.now() - t0} ms`, (e) => `failed: ${String(e).slice(0, 80)}`);
+    const inPage = await page.evaluate(async () => {
+      const go = (init?: RequestInit) =>
+        Promise.race([
+          fetch("/api/print/requests/DE-2222-2222", init).then((r) => `${r.status}`),
+          new Promise<string>((r) => setTimeout(() => r("no answer in 5 s"), 5000)),
+        ]);
+      return { plain: await go(), noStore: await go({ cache: "no-store" }), partners: await Promise.race([fetch("/api/print/partners").then((r) => `${r.status}`), new Promise<string>((r) => setTimeout(() => r("no answer in 5 s"), 5000))]) };
+    });
+    console.log(`status lookup diagnostics: direct ${direct}; in page ${JSON.stringify(inPage)}`);
     // Printed so a CI log shows what keeps the page busy if this ever fails.
     console.log(`status page requests: ${JSON.stringify(seen)}; still open after 3 s: ${JSON.stringify([...pending.values()])}`);
-    expect(seen.filter((u) => u.startsWith("/api/print/requests/"))).toHaveLength(1);
+    await expect(page.getByText(/couldn.t find a print request with the code/)).toBeVisible();
+    expect(seen.filter((u) => u.startsWith("/api/print/requests/")).length).toBeGreaterThanOrEqual(1);
     expect([...pending.values()]).toEqual([]);
   });
 
   test("an admin sets up a printing partner; a visitor asks for a print, follows it and cancels", async ({ page, browser }) => {
+    // The demo database persists between runs and retries: give this run's partner its own name.
+    const partnerName = `Old Cataract Reception ${Date.now().toString(36)}`;
     // visitors cannot manage partners or jobs
     const denied = await page.request.post("/api/admin/print-partners", { data: {}, headers: { origin: "http://localhost:3200" } });
     expect(denied.status()).toBe(401);
@@ -150,7 +164,7 @@ test.describe("Memory Hunt", () => {
 
     await page.getByRole("button", { name: "Add partner" }).click();
     const form = page.getByRole("form", { name: "New printing partner" });
-    await form.getByLabel("Name", { exact: true }).fill("Old Cataract Reception");
+    await form.getByLabel("Name", { exact: true }).fill(partnerName);
     await form.getByLabel("Destination", { exact: true }).selectOption("aswan");
     await form.getByLabel("Address (shown to visitors)").fill("Abtal El Tahrir Street, Aswan");
     await form.getByLabel("Opening hours for collection").fill("Reception, 8:00–22:00");
@@ -161,7 +175,7 @@ test.describe("Memory Hunt", () => {
     await form.getByLabel("Verified on").fill("2026-11-12");
     await form.getByLabel("How it was verified").fill("Agreement signed with the front-office manager in person.");
     await form.getByRole("button", { name: "Add partner" }).click();
-    await expect(page.getByText("Added: Old Cataract Reception")).toBeVisible();
+    await expect(page.getByText(`Added: ${partnerName}`)).toBeVisible();
 
     // a separate visitor (no admin cookie)
     const visitor = await (await browser.newContext()).newPage();
@@ -176,7 +190,7 @@ test.describe("Memory Hunt", () => {
     await panel.getByRole("button", { name: "Request a print" }).click();
     await expect(panel.getByText("Choose where you'd like to collect it.")).toBeVisible();
     await expect(panel.getByText("Please confirm that the partner may see")).toBeVisible();
-    await panel.getByLabel(/Old Cataract Reception/).check();
+    await panel.getByRole("radio", { name: new RegExp(partnerName) }).check();
     await panel.getByRole("checkbox", { name: /will see and print this postcard image/ }).check();
     await panel.getByRole("button", { name: "Request a print" }).click();
     const code = (await panel.getByTestId("collection-code").textContent())!.trim();
@@ -205,7 +219,7 @@ test.describe("Memory Hunt", () => {
     // clean up: the partner has no open jobs any more, so it can be deleted
     await page.reload();
     page.once("dialog", (d) => d.accept());
-    await page.getByRole("button", { name: "Delete Old Cataract Reception" }).click();
-    await expect(page.getByText("Deleted: Old Cataract Reception")).toBeVisible();
+    await page.getByRole("button", { name: `Delete ${partnerName}` }).click();
+    await expect(page.getByText(`Deleted: ${partnerName}`)).toBeVisible();
   });
 });

@@ -66,7 +66,11 @@ test.describe("hieroglyphics explorer", () => {
     const file = path.join(os.tmpdir(), "blank-wall.png");
     writeFileSync(file, c.toBuffer("image/png"));
     await page.goto("/hieroglyphs");
-    await page.locator('#scan input[type="file"]').setInputFiles(file);
+    // Choosing a file before the page has hydrated loses the change event: try again until the preview is ready.
+    await expect(async () => {
+      await page.locator('#scan input[type="file"]').setInputFiles(file);
+      await expect(page.getByRole("button", { name: "Identify sign" })).toBeVisible({ timeout: 2_000 });
+    }).toPass({ timeout: 15_000 });
     await page.getByRole("button", { name: "Identify sign" }).click();
     await expect(page.locator("#scan").getByRole("status")).toContainText(/couldn't find a clear sign/);
   });
