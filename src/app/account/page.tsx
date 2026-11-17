@@ -5,8 +5,11 @@ import { AccountPanel } from "@/components/AccountPanel";
 
 export const metadata: Metadata = { title: "Your account", robots: { index: false, follow: false } };
 
-export default async function AccountPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
-  const { error } = await searchParams;
+type Search = { error?: string; welcome?: string; "signed-out"?: string; password?: string };
+
+export default async function AccountPage({ searchParams }: { searchParams: Promise<Search> }) {
+  const q = await searchParams;
+  const { error } = q;
   const accounts = backendMode() === "supabase";
   return (
     <div className="mx-auto max-w-3xl px-5 pb-24 pt-36 md:px-8">
@@ -17,7 +20,27 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       </p>
       {error === "link" && (
         <p role="alert" className="mt-6 rounded-xl bg-alert/10 p-4 font-medium text-alert">
-          That sign-in link has expired or was already used. Request a new one below.
+          That link has expired, was already used, or was opened in a different browser from the one you asked in. Request a new one below.
+        </p>
+      )}
+      {error === "reset" && (
+        <p role="alert" className="mt-6 rounded-xl bg-alert/10 p-4 font-medium text-alert">
+          That password-reset link has expired or was already used. Choose &ldquo;Forgot your password?&rdquo; below to get a new one.
+        </p>
+      )}
+      {q.welcome && (
+        <p role="status" className="mt-6 rounded-xl bg-ok/10 p-4 font-medium text-ok">
+          You&rsquo;re signed in.
+        </p>
+      )}
+      {q["signed-out"] && (
+        <p role="status" className="mt-6 rounded-xl bg-ok/10 p-4 font-medium text-ok">
+          You&rsquo;ve signed out on this device.
+        </p>
+      )}
+      {q.password === "changed" && (
+        <p role="status" className="mt-6 rounded-xl bg-ok/10 p-4 font-medium text-ok">
+          Your password has been changed.
         </p>
       )}
       {accounts ? (

@@ -5,11 +5,27 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Menu, Search, UserRound, X } from "lucide-react";
 import { NAV } from "@/content/navigation";
 import { useMyEgypt } from "@/lib/client-store";
+import { supabaseBrowser } from "@/lib/supabase/browser";
 import { Logo } from "./design";
 import { SearchDialog } from "./SearchDialog";
 
+/** Whether a visitor is signed in (Supabase only). Follows sign-in and sign-out in any tab. */
+function useSignedIn() {
+  const [signedIn, setSignedIn] = useState(false);
+  useEffect(() => {
+    const sb = supabaseBrowser();
+    if (!sb) return;
+    sb.auth.getSession().then(({ data }: { data: { session: unknown } }) => setSignedIn(!!data.session));
+    const sub = sb.auth.onAuthStateChange((_e: string, session: unknown) => setSignedIn(!!session));
+    return () => sub.data.subscription.unsubscribe();
+  }, []);
+  return signedIn;
+}
+
 export function SiteHeader() {
   const path = usePathname();
+  const signedIn = useSignedIn();
+  const accountLabel = signedIn ? "My account" : "Sign in";
   const [mobile, setMobile] = useState(false);
   const [menu, setMenu] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
@@ -136,7 +152,7 @@ export function SiteHeader() {
           </button>
           <Link href="/account" className={`btn btn-sm hidden sm:inline-flex ${overHero ? "btn-outline-light" : "btn-ghost"}`}>
             <UserRound aria-hidden="true" size={16} strokeWidth={1.75} />
-            Sign in
+            {accountLabel}
           </Link>
           <button
             type="button"
@@ -174,7 +190,7 @@ export function SiteHeader() {
             ))}
           </ul>
           <Link href="/account" className="btn btn-primary mt-6 w-full sm:hidden">
-            <UserRound aria-hidden="true" size={16} /> Sign in
+            <UserRound aria-hidden="true" size={16} /> {accountLabel}
           </Link>
         </nav>
       )}

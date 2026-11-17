@@ -1,9 +1,10 @@
 "use client";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { replaceBucket, saveItinerary, useMyEgypt } from "@/lib/client-store";
 import type { Itinerary } from "@/lib/validation";
+import { AuthForms } from "./AuthForms";
 import { formatDate } from "./ui";
 
 type CloudTrip = { id: string; title: string; data: Itinerary; created_at: string };
@@ -31,45 +32,50 @@ export function AccountPanel() {
     if (r.ok) setTrips(r.data.itineraries ?? []);
   }, []);
 
-  useEffect(() => {
-    sb?.auth.getUser().then(({ data }: { data: { user: User | null } }) => {
-      setUser(data.user ?? null);
-      if (data.user) load();
-    });
+  const refreshUser = useCallback(async () => {
+    const { data } = (await sb?.auth.getUser()) ?? { data: { user: null } };
+    setUser(data.user ?? null);
+    if (data.user) load();
   }, [sb, load]);
 
-  async function sendLink(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!sb) return;
-    setBusy(true);
-    const email = String(new FormData(e.currentTarget).get("email") ?? "").trim();
-    const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/account` } });
-    setBusy(false);
-    // Same message either way, so the form can't be used to find out who has an account.
-    setMsg(error?.status === 429 ? "Too many requests. Please wait a minute." : "If that address is valid, a sign-in link is on its way. Check your inbox.");
-  }
+  useEffect(() => {
+    void refreshUser();
+    // Keep this page in step with sign-in and sign-out in other tabs.
+    const sub = sb?.auth.onAuthStateChange((event: string) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT") void refreshUser();
+    });
+    return () => sub?.data.subscription.unsubscribe();
+  }, [sb, refreshUser]);
 
   if (user === undefined) return <p className="mt-10 text-muted" aria-live="polite">Loading your account…</p>;
 
   if (!user)
     return (
-      <form onSubmit={sendLink} className="card mt-10 space-y-5 p-7">
-        <h2 className="text-2xl">Sign in with an email link</h2>
-        <p className="text-muted">No password needed. We only use your email to sign you in.</p>
-        <div className="field">
-          <label htmlFor="acc-email">Email address</label>
-          <input id="acc-email" name="email" type="email" required autoComplete="email" className="input" />
-        </div>
-        <button type="submit" className="btn btn-primary" disabled={busy}>{busy ? "Sending…" : "Send sign-in link"}</button>
-        <p aria-live="polite" className="text-sm font-medium">{msg}</p>
-      </form>
+      <AuthForms
+        onSignedIn={() => {
+          // A full load so the server, the header and this page all see the new session.
+          window.location.assign("/account?welcome=1");
+        }}
+      />
     );
 
   return (
     <div className="mt-10 space-y-8">
       <div className="card flex flex-wrap items-center justify-between gap-4 p-7">
-        <p>Signed in as <strong>{user.email}</strong></p>
-        <button type="button" className="btn btn-ghost" onClick={async () => { await sb?.auth.signOut(); setUser(null); setTrips([]); }}>Sign out</button>
+        <p data-testid="signed-in-as">
+          Signed in as <strong>{user.email}</strong>
+        </p>
+        <button
+          type="button"
+          className="btn btn-ghost"
+          onClick={async () => {
+            await sb?.auth.signOut();
+            setTrips([]);
+            window.location.assign("/account?signed-out=1");
+          }}
+        >
+          Sign out
+        </button>
       </div>
 
       <section className="card p-7" aria-labelledby="bucket-sync-h">
