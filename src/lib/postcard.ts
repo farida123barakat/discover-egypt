@@ -30,11 +30,11 @@ export type PostcardInput = {
   arabic: boolean;
 };
 
-const C = { night: "#0a1220", ivory: "#f6efe2", cream: "#f3e9d6", gold: "#c9a35a", gold2: "#e4c486", gold3: "#f0dcb0", ink: "#2a1d14", nile: "#123f58", nile2: "#1f6f8b", sand: "#e8cfa0", sand2: "#d2a86a", papyrus: "#dcc48f", brown: "#5a3d22", muted: "#7b6a55" };
-const SERIF = "'Fraunces Variable', Georgia, serif";
-const SANS = "'Inter Variable', system-ui, sans-serif";
-const ARABIC = "Amiri, 'Noto Naskh Arabic', serif";
-const HIERO = "'Noto Sans Egyptian Hieroglyphs'";
+export const C = { night: "#0a1220", ivory: "#f6efe2", cream: "#f3e9d6", gold: "#c9a35a", gold2: "#e4c486", gold3: "#f0dcb0", ink: "#2a1d14", nile: "#123f58", nile2: "#1f6f8b", sand: "#e8cfa0", sand2: "#d2a86a", papyrus: "#dcc48f", brown: "#5a3d22", muted: "#7b6a55" };
+export const SERIF = "'Fraunces Variable', Georgia, serif";
+export const SANS = "'Inter Variable', system-ui, sans-serif";
+export const ARABIC = "Amiri, 'Noto Naskh Arabic', serif";
+export const HIERO = "'Noto Sans Egyptian Hieroglyphs'";
 export const ARABIC_LINE = "ذكريات من مصر"; // "Memories from Egypt"
 // Decorative signs only — not a sentence. Ankh, sun disc, scarab, eye, water, djed pillar.
 const BORDER_SIGNS = ["\u{132F9}", "\u{131F3}", "\u{131A3}", "\u{13080}", "\u{13217}", "\u{132BD}"];
@@ -74,7 +74,7 @@ export function wrapText(measure: (s: string) => number, text: string, maxWidth:
 }
 
 /** Fit the largest font size (step 2px) that keeps text within maxLines. */
-function fitText(ctx: CanvasRenderingContext2D, text: string, font: (px: number) => string, maxWidth: number, maxLines: number, max: number, min: number) {
+export function fitText(ctx: CanvasRenderingContext2D, text: string, font: (px: number) => string, maxWidth: number, maxLines: number, max: number, min: number) {
   for (let px = max; px >= min; px -= 2) {
     ctx.font = font(px);
     const lines = wrapText((s) => ctx.measureText(s).width, text, maxWidth, 99);
@@ -85,14 +85,14 @@ function fitText(ctx: CanvasRenderingContext2D, text: string, font: (px: number)
 }
 
 /** Draw the photo so it covers the box, cropped from the centre. */
-function cover(ctx: CanvasRenderingContext2D, img: CanvasImageSource, size: { w: number; h: number }, x: number, y: number, w: number, h: number) {
+export function cover(ctx: CanvasRenderingContext2D, img: CanvasImageSource, size: { w: number; h: number }, x: number, y: number, w: number, h: number) {
   const s = Math.max(w / size.w, h / size.h);
   const sw = w / s,
     sh = h / s;
   ctx.drawImage(img, (size.w - sw) / 2, (size.h - sh) / 2, sw, sh, x, y, w, h);
 }
 
-function placeholder(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
+export function placeholder(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
   const g = ctx.createLinearGradient(0, y, 0, y + h);
   g.addColorStop(0, "#1a2238");
   g.addColorStop(0.6, "#8a5a36");

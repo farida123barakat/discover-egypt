@@ -11,6 +11,7 @@ const cols = [
       ["/discover", "Destinations"],
       ["/discover#find", "Find your Egypt"],
       ["/discover#timeline", "Walk through time"],
+      ["/memory-hunt", "Egypt Memory Hunt"],
       ["/experience", "Food & culture"],
     ],
   },

@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
 
+// Admin sign-in allows 5 attempts per 15 minutes per address. Each file acts as its own visitor so the
+// suite (with CI retries) stays under the limit without weakening it.
+test.use({ extraHTTPHeaders: { "x-real-ip": "10.20.0.4" } });
+
 test.describe("Taste Egypt", () => {
   test("browse dishes by choosing a region (no location needed)", async ({ page }) => {
     await page.goto("/taste");
@@ -70,7 +74,7 @@ test.describe("Taste Egypt", () => {
     await page.goto("/admin/login");
     await page.getByLabel("Password").fill("e2e-admin-password-123");
     await page.getByRole("button", { name: "Sign in" }).click();
-    await expect(page.getByRole("heading", { name: "Recipe review" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Recipe review" })).toBeVisible({ timeout: 15_000 });
     // The demo database persists between runs: start from a draft.
     const unpublish = page.getByRole("button", { name: /Unpublish Karkade|Return to draft Karkade/ });
     if (await unpublish.count()) {

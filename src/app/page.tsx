@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Trophy, Map, PenLine, Route, ScanSearch, Stamp, Sun, UtensilsCrossed } from "lucide-react";
+import { ArrowRight, BookImage, CalendarDays, Camera, Trophy, Map, PenLine, Route, ScanSearch, Stamp, Sun, UtensilsCrossed } from "lucide-react";
 import { destinations, getDestination } from "@/content/destinations";
 import { dishes } from "@/content/culture";
 import type { PhotoKey } from "@/content/images";
@@ -200,6 +200,32 @@ export default async function Home() {
       <section className="mx-auto max-w-7xl px-5 py-24 md:px-8 md:py-28" aria-label="Egyptian proverb">
         <Reveal>
           <ProverbCard initialId={proverb.id} />
+        </Reveal>
+      </section>
+
+      {/* Memory Hunt */}
+      <section className="mx-auto max-w-7xl px-5 pb-24 md:px-8 md:pb-28" aria-labelledby="hunt-home-h">
+        <Reveal>
+          <div className="card grid overflow-hidden md:grid-cols-2">
+            <div className="relative min-h-64">
+              <Photo k="heroAswan" className="absolute inset-0 h-full w-full" sizes="(min-width: 768px) 50vw, 100vw" />
+            </div>
+            <div className="p-8 md:p-12">
+              <p className="eyebrow">New · Egypt Memory Hunt</p>
+              <h2 id="hunt-home-h" className="mt-3 text-4xl md:text-5xl">
+                Collect moments, not souvenirs.
+              </h2>
+              <p className="mt-4 text-lg text-muted">Spot a cartouche in Luxor, taste karkade in Aswan, catch a felucca sunset. Every challenge you complete becomes a postcard in your album, kept privately on your device.</p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link href="/memory-hunt" className="btn btn-primary">
+                  <Camera aria-hidden="true" size={16} /> Start the hunt
+                </Link>
+                <Link href="/memory-hunt/album" className="btn btn-ghost">
+                  <BookImage aria-hidden="true" size={16} /> My album
+                </Link>
+              </div>
+            </div>
+          </div>
         </Reveal>
       </section>
 

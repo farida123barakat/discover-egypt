@@ -1,6 +1,33 @@
 # Test results
 
-Recorded **13 November 2026** in a Linux sandbox (Node 22, system Google Chrome, production build, local demo mode).
+## Latest run: GitHub Actions, 17 November 2026
+
+Run [44158408773](https://github.com/farida123barakat/discover-egypt/actions/runs/44158408773) on branch `memory-hunt-finish` (commit `3aa2a24`), Ubuntu, Node 22, Playwright Chromium, production build, local demo mode. Every push and pull request now runs the same checks (`.github/workflows/ci.yml`).
+
+| Check | Result |
+| --- | --- |
+| Type check, lint (`npm run check`) | ✅ 0 errors |
+| Vitest: unit, API and database permission tests (13 files) | ✅ **191 / 191** |
+| Production build | ✅ 37 routes |
+| Playwright: journeys, Memory Hunt (incl. Memory Passport PDFs), accessibility (axe on 23 pages), mobile | ✅ **58 / 58** (one flaky on the first attempt, see below) |
+| Dependency audit (`npm audit --omit=dev`) | ✅ 0 vulnerabilities |
+
+### Bugs the new CI found and fixed (17 November)
+
+1. **Unread response bodies kept requests open.** The print status page never read the body of a 404, so the browser never considered the request finished and the page never went idle (the accessibility scan waited forever). Every Memory Hunt fetch now reads its response body to the end. There's a regression test.
+2. **Admin sign-in limit tripped by the test suite itself.** Sign-in allows 5 attempts per 15 minutes per address; five test files sign in and CI retries, so later files were refused. Each admin test file now acts as its own visitor address. The limit is unchanged.
+3. **Sign-in relied on a refresh-then-redirect** to reach the dashboard. It now goes to `/admin` directly.
+4. **Hieroglyph uploads raced hydration in tests:** a file chosen before the page hydrated was lost. The tests choose it again until the photo step appears (a person can't be that fast).
+5. **Memory Passport stamps could show points the points total didn't count** (a memory with neither photo nor words). They now follow the same rule.
+
+### Still to look at
+
+- In-app link navigation is occasionally slow on CI runners (seen on Watch & Discover and on the album's "Check the status" link); the tests pass on retry. The print-flow test now checks the link and opens the status page directly. Worth profiling on the real deployment.
+- Not covered by automated tests: a live Supabase project, real photos and map tiles, screen readers (NVDA/VoiceOver), Safari and Firefox.
+
+## Earlier run (13 November 2026)
+
+Recorded in a Linux sandbox (Node 22, system Google Chrome, production build, local demo mode).
 
 ## Summary
 
@@ -38,6 +65,8 @@ Recorded **13 November 2026** in a Linux sandbox (Node 22, system Google Chrome,
 - Screen-reader testing with NVDA/VoiceOver, and Safari/Firefox. Recommended before launch.
 
 ## Raw output
+
+The log below is from an **earlier run (12 November, 23:20 UTC)**, made before several suites were added. That is why it shows 50 Vitest and 24 Playwright tests while the summary above shows 110 and 51. The full log of the run behind the summary is not in the repository. The next run should paste its complete output here.
 
 ```
 Recorded 2026-11-12T23:20Z on Node v22.23.4, Chrome (system)

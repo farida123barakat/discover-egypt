@@ -89,6 +89,7 @@ export class PrintUnavailable extends Error {}
 export async function createPrintRequest(partnerId: string, image: Uint8Array, userId: string | null) {
   const partner = (await listLivePartners()).find((p) => p.id === partnerId);
   if (!partner) throw new PrintUnavailable();
+  await sweepPrintJobs().catch(() => {}); // housekeeping must never block a visitor's request
   const id = randomUUID();
   const token = newCancelToken();
   const now = new Date();
@@ -182,6 +183,34 @@ export async function cancelPrintRequest(code: string, token: string): Promise<"
   if (FINAL_STATUSES.includes(effectiveStatus(r.status, r.expiresAt))) return "final";
   await setStatus(r, "cancelled");
   return "ok";
+}
+
+/**
+ * Requests past their collection window are shown as "expired", but their image would stay in storage
+ * until someone changed the status. This deletes the image and stores the final status. It runs when a
+ * print is requested, when an admin opens the queue, and daily from /api/cron/print-sweep.
+ */
+export async function sweepPrintJobs(now = new Date()) {
+  const raw = await listRawRequests();
+  let swept = 0;
+  for (const r of raw) {
+    const eff = effectiveStatus(r.status, r.expiresAt, now);
+    if (FINAL_STATUSES.includes(eff) && (r.imagePath || eff !== r.status)) {
+      await setStatus(r, eff);
+      swept++;
+    }
+  }
+  return swept;
+}
+
+async function listRawRequests(): Promise<LocalPrintRequest[]> {
+  const mode = backendMode();
+  if (mode === "supabase") {
+    const { data } = await supabaseService().from("print_requests").select("*").or("image_path.not.is.null,status.in.(requested,printing,ready)").limit(1000);
+    return ((data ?? []) as RequestRow[]).map(reqFromRow);
+  }
+  if (mode === "local") return (await readLocal()).printRequests ?? [];
+  return [];
 }
 
 export async function adminListPrintRequests(): Promise<LocalPrintRequest[]> {

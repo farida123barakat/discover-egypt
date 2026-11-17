@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
 
+// Admin sign-in allows 5 attempts per 15 minutes per address. Each file acts as its own visitor so the
+// suite (with CI retries) stays under the limit without weakening it.
+test.use({ extraHTTPHeaders: { "x-real-ip": "10.20.0.2" } });
+
 test("1. a first-time visitor discovers Egypt through the preference quiz", async ({ page }) => {
   await page.goto("/discover");
   const quiz = page.locator("#find");
@@ -78,7 +82,7 @@ test("6–7. a visitor submits a question and an admin publishes it", async ({ p
   await expect(page).toHaveURL(/\/admin\/login/);
   await page.getByLabel("Password").fill("e2e-admin-password-123");
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({ timeout: 15_000 });
   const item = page.locator("li", { hasText: q });
   await item.getByLabel(/Answer/).fill("Ask at the Nubian Museum and at guesthouses on the West Bank.");
   await item.getByRole("button", { name: "Answer & publish" }).click();
