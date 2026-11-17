@@ -27,12 +27,19 @@ export function AdminLogin({ mode }: { mode: "local" | "supabase" }) {
     if (mode === "local") {
       const r = await post("/api/admin/login", { password: fd.get("password") });
       if (!r.ok) setErr(r.error ?? "Sign in failed");
-      else router.refresh();
+      else {
+        // Go to the dashboard directly rather than relying on the login page's redirect after a refresh.
+        router.replace("/admin");
+        router.refresh();
+      }
     } else {
       const sb = supabaseBrowser();
       const { error } = (await sb?.auth.signInWithPassword({ email: String(fd.get("email")), password: String(fd.get("password")) })) ?? { error: { message: "Unavailable" } };
       if (error) setErr("Incorrect email or password");
-      else router.refresh();
+      else {
+        router.replace("/admin");
+        router.refresh();
+      }
     }
     setBusy(false);
   }

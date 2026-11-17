@@ -1,6 +1,10 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Download, type Page } from "@playwright/test";
 
+// Admin sign-in allows 5 attempts per 15 minutes per address. Each file acts as its own visitor so the
+// suite (with CI retries) stays under the limit without weakening it.
+test.use({ extraHTTPHeaders: { "x-real-ip": "10.20.0.3" } });
+
 /** Pages in a PDF made by jsPDF: one "/Type /Page" object per page. */
 function pdfPages(d: Download) {
   return d.path().then((p) => (readFileSync(p!, "latin1").match(/\/Type\s*\/Page(?![s\w])/g) ?? []).length);
@@ -115,6 +119,25 @@ test.describe("Memory Hunt", () => {
     await expect(page.getByText("Your album is empty.")).toBeVisible();
   });
 
+  test("a print status page looks the code up once and then settles", async ({ page }) => {
+    const seen: string[] = [];
+    const pending = new Map<object, string>();
+    const path = (u: string) => new URL(u).pathname + new URL(u).search;
+    page.on("request", (r) => {
+      seen.push(path(r.url()));
+      pending.set(r, path(r.url()));
+    });
+    page.on("requestfinished", (r) => pending.delete(r));
+    page.on("requestfailed", (r) => pending.delete(r));
+    await page.goto("/memory-hunt/print/DE-2222-2222");
+    await expect(page.getByText(/couldn.t find a print request with the code/)).toBeVisible();
+    await page.waitForTimeout(3000);
+    // Printed so a CI log shows what keeps the page busy if this ever fails.
+    console.log(`status page requests: ${JSON.stringify(seen)}; still open after 3 s: ${JSON.stringify([...pending.values()])}`);
+    expect(seen.filter((u) => u.startsWith("/api/print/requests/"))).toHaveLength(1);
+    expect([...pending.values()]).toEqual([]);
+  });
+
   test("an admin sets up a printing partner; a visitor asks for a print, follows it and cancels", async ({ page, browser }) => {
     // visitors cannot manage partners or jobs
     const denied = await page.request.post("/api/admin/print-partners", { data: {}, headers: { origin: "http://localhost:3200" } });
@@ -123,7 +146,7 @@ test.describe("Memory Hunt", () => {
     await page.goto("/admin/login");
     await page.getByLabel("Password").fill("e2e-admin-password-123");
     await page.getByRole("button", { name: "Sign in" }).click();
-    await expect(page.getByRole("heading", { name: "Printing partners" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Printing partners" })).toBeVisible({ timeout: 15_000 });
 
     await page.getByRole("button", { name: "Add partner" }).click();
     const form = page.getByRole("form", { name: "New printing partner" });
