@@ -2,7 +2,20 @@ import { writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { createCanvas, GlobalFonts } from "@napi-rs/canvas";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
+
+/**
+ * Choose a photo in the scanner. A file chosen before the page has hydrated is lost (no change handler
+ * yet), so choose it again until the "Adjust your photo" step appears. Visitors can't be that fast.
+ */
+async function upload(scanner: Locator, file: string) {
+  const adjust = scanner.getByRole("heading", { name: "Adjust your photo" });
+  await expect(async () => {
+    if (await adjust.isVisible()) return;
+    await scanner.locator('input[type="file"]').setInputFiles(file);
+    await expect(adjust).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 15_000 });
+}
 
 /** A photo-like test image: an owl (G17, the sound m) in brown on a sandstone gradient with a light grain. */
 function owlPhoto(): string {
@@ -28,8 +41,7 @@ test.describe("hieroglyphics explorer", () => {
   test("upload a photo, crop, and get an honest identification", async ({ page }) => {
     await page.goto("/hieroglyphs");
     const scanner = page.locator("#scan");
-    await scanner.locator('input[type="file"]').setInputFiles(owlPhoto());
-    await expect(scanner.getByRole("heading", { name: "Adjust your photo" })).toBeVisible();
+    await upload(scanner, owlPhoto());
     // keyboard-adjust the crop frame, then identify
     const frame = scanner.getByRole("slider", { name: /Crop frame/ });
     await frame.focus();
@@ -67,11 +79,7 @@ test.describe("hieroglyphics explorer", () => {
     writeFileSync(file, c.toBuffer("image/png"));
     await page.goto("/hieroglyphs");
     const scanner = page.locator("#scan");
-    await scanner.locator('input[type="file"]').setInputFiles(file);
-    // Same steps as the owl test. If the photo step never appears, say what the scanner shows instead.
-    await expect(scanner.getByRole("heading", { name: "Adjust your photo" })).toBeVisible({ timeout: 10_000 }).catch(async (e) => {
-      throw new Error(`Scanner did not reach "Adjust your photo". It shows: ${(await scanner.innerText()).slice(0, 400)}\n${e}`);
-    });
+    await upload(scanner, file);
     await scanner.getByRole("button", { name: "Identify sign" }).click();
     await expect(scanner.getByRole("status")).toContainText(/couldn't find a clear sign/, { timeout: 15_000 });
   });
