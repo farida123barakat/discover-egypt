@@ -63,16 +63,17 @@ test.describe("hieroglyphics explorer", () => {
     const ctx = c.getContext("2d");
     ctx.fillStyle = "#d8c3a0";
     ctx.fillRect(0, 0, 400, 300);
-    const file = path.join(os.tmpdir(), "blank-wall.png");
+    const file = path.join(os.tmpdir(), `blank-wall-${Date.now()}.png`);
     writeFileSync(file, c.toBuffer("image/png"));
     await page.goto("/hieroglyphs");
-    // Choosing a file before the page has hydrated loses the change event: try again until the preview is ready.
-    await expect(async () => {
-      await page.locator('#scan input[type="file"]').setInputFiles(file);
-      await expect(page.getByRole("button", { name: "Identify sign" })).toBeVisible({ timeout: 2_000 });
-    }).toPass({ timeout: 15_000 });
-    await page.getByRole("button", { name: "Identify sign" }).click();
-    await expect(page.locator("#scan").getByRole("status")).toContainText(/couldn't find a clear sign/);
+    const scanner = page.locator("#scan");
+    await scanner.locator('input[type="file"]').setInputFiles(file);
+    // Same steps as the owl test. If the photo step never appears, say what the scanner shows instead.
+    await expect(scanner.getByRole("heading", { name: "Adjust your photo" })).toBeVisible({ timeout: 10_000 }).catch(async (e) => {
+      throw new Error(`Scanner did not reach "Adjust your photo". It shows: ${(await scanner.innerText()).slice(0, 400)}\n${e}`);
+    });
+    await scanner.getByRole("button", { name: "Identify sign" }).click();
+    await expect(scanner.getByRole("status")).toContainText(/couldn't find a clear sign/, { timeout: 15_000 });
   });
 
   test("library search, filters and the quiz", async ({ page }) => {
