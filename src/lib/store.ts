@@ -65,18 +65,21 @@ type LocalDb = {
   recipeReview?: Record<string, { status: "draft" | "approved"; lastReviewed: string; reviewer?: string }>;
   bucket?: BucketActivity[] | null;
   media?: MediaItem[] | null;
+  printPartners?: import("./print").PrintPartner[];
+  printRequests?: LocalPrintRequest[];
 };
+export type LocalPrintRequest = { id: string; code: string; partnerId: string; userId: string | null; status: import("./print").PrintStatus; cancelTokenHash: string; imagePath: string | null; createdAt: string; updatedAt: string; expiresAt: string };
 const DB_FILE = path.join(process.cwd(), ".data", "local-db.json");
 let queue: Promise<unknown> = Promise.resolve();
 
-async function readLocal(): Promise<LocalDb> {
+export async function readLocal(): Promise<LocalDb> {
   try {
     return JSON.parse(await fs.readFile(DB_FILE, "utf8")) as LocalDb;
   } catch {
     return { submissions: [], contacts: [], newsletter: [], prices: {} };
   }
 }
-function writeLocal<T>(fn: (db: LocalDb) => T): Promise<T> {
+export function writeLocal<T>(fn: (db: LocalDb) => T): Promise<T> {
   const run = queue.then(async () => {
     const db = await readLocal();
     const out = fn(db);

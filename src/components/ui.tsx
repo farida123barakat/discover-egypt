@@ -155,3 +155,17 @@ export function Toast({ message, tone = "ok" }: { message: string | null; tone?:
     </div>
   );
 }
+
+/* ---------- Progress ring (bucket list, memory hunt) ---------- */
+export function ProgressRing({ value, size = 128, stroke = 10, track = "rgb(250 246 238 / 0.18)", color = "var(--color-gold-300)" }: { value: number; size?: number; stroke?: number; track?: string; color?: string }) {
+  const R = (size - stroke) / 2 - 4,
+    C = 2 * Math.PI * R,
+    c = size / 2;
+  const pct = Math.max(0, Math.min(1, value));
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true" className="shrink-0 -rotate-90">
+      <circle cx={c} cy={c} r={R} fill="none" stroke={track} strokeWidth={stroke} />
+      <motion.circle cx={c} cy={c} r={R} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={C} initial={{ strokeDashoffset: C }} animate={{ strokeDashoffset: C * (1 - pct) }} transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }} />
+    </svg>
+  );
+}

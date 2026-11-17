@@ -1,12 +1,11 @@
 "use client";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { Award, Check, Clock, Heart, ListPlus, MapPin, Mountain, Plus, Sparkles, Undo2 } from "lucide-react";
 import { badgesFor, BUCKET_CATEGORIES, CATEGORY_LABEL, monthRanges, type BucketActivity, type BucketCategory } from "@/content/bucket";
 import { getDestination } from "@/content/destinations";
 import { setBucket, useMyEgypt } from "@/lib/client-store";
-import { Photo } from "../ui";
+import { Photo, ProgressRing } from "../ui";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 type View = "all" | "mine" | "done" | "season";
@@ -19,14 +18,9 @@ export function BucketProgress({ activities }: { activities: BucketActivity[] })
   const total = activities.length;
   const pct = total ? done / total : 0;
   const earned = badgesFor(Object.keys(me.bucket).filter((k) => me.bucket[k].done), activities).filter((b) => b.earned).length;
-  const R = 52,
-    C = 2 * Math.PI * R;
   return (
     <div className="glass flex items-center gap-6 p-6">
-      <svg width="128" height="128" viewBox="0 0 128 128" aria-hidden="true" className="shrink-0 -rotate-90">
-        <circle cx="64" cy="64" r={R} fill="none" stroke="rgb(250 246 238 / 0.18)" strokeWidth="10" />
-        <motion.circle cx="64" cy="64" r={R} fill="none" stroke="var(--color-gold-300)" strokeWidth="10" strokeLinecap="round" strokeDasharray={C} initial={{ strokeDashoffset: C }} animate={{ strokeDashoffset: C * (1 - pct) }} transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }} />
-      </svg>
+      <ProgressRing value={pct} />
       <div>
         <p className="font-display text-4xl !text-ivory" role="status">
           {done} <span className="text-2xl text-ivory/70">of {total}</span>

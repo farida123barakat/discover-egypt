@@ -175,6 +175,31 @@ export function parseTimedLines(raw: string): { start: number; text: string }[] 
   return out;
 }
 
+/* ---------------- Memory Hunt: printing partners and requests ---------------- */
+export const printPartnerSchema = z
+  .object({
+    id: z.string().uuid().optional(),
+    name: text(2, 120, "Name"),
+    kind: z.enum(["hotel", "museum", "tourism-office", "cafe"]),
+    destination: z.enum(slugs),
+    address: text(5, 300, "Address"),
+    openingHours: optionalText(200),
+    verificationNote: optionalText(500),
+    verified: z.boolean(),
+    verifiedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use a date").nullable(),
+    active: z.boolean(),
+  })
+  .refine((p) => !p.verified || !!p.verifiedOn, { message: "Record the date you verified this partner", path: ["verifiedOn"] })
+  .refine((p) => !p.active || p.verified, { message: "Only a verified partner can be active", path: ["active"] })
+  .refine((p) => !p.verified || (p.verificationNote ?? "").length >= 10, { message: "Note how the partnership was verified (who, how)", path: ["verificationNote"] });
+
+export const printStatusSchema = z.object({
+  id: z.string().uuid(),
+  status: z.enum(["requested", "printing", "ready", "collected", "cancelled", "expired"]),
+});
+
+export const cancelPrintSchema = z.object({ token: z.string().regex(/^[0-9a-f]{48}$/, "Invalid token") });
+
 export type Itinerary = z.infer<typeof itinerarySchema>;
 
 export function fieldErrors(err: z.ZodError) {
