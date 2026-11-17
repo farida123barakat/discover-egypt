@@ -34,7 +34,7 @@ export async function middleware(req: NextRequest) {
 
   // Refresh the Supabase session cookie when Supabase is configured.
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (url && key) {
     const supabase = createServerClient(url, key, {
       cookies: {

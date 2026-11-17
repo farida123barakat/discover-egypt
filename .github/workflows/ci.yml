@@ -114,8 +114,9 @@ jobs:
           supabase status -o env > /tmp/sb.env
           set -a; . /tmp/sb.env; set +a
           echo "NEXT_PUBLIC_SUPABASE_URL=${API_URL}" >> "$GITHUB_ENV"
-          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${ANON_KEY:-$PUBLISHABLE_KEY}" >> "$GITHUB_ENV"
-          echo "SUPABASE_SERVICE_ROLE_KEY=${SERVICE_ROLE_KEY:-$SECRET_KEY}" >> "$GITHUB_ENV"
+          # the new key types, as a new hosted project has them (legacy keys only if this CLI lacks them)
+          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${PUBLISHABLE_KEY:-$ANON_KEY}" >> "$GITHUB_ENV"
+          echo "SUPABASE_SECRET_KEY=${SECRET_KEY:-$SERVICE_ROLE_KEY}" >> "$GITHUB_ENV"
           echo "SUPABASE_DB_URL=${DB_URL}" >> "$GITHUB_ENV"
           echo "MAIL_URL=${MAILPIT_URL:-${INBUCKET_URL:-http://127.0.0.1:54324}}" >> "$GITHUB_ENV"
           echo "Local stack: API ${API_URL}, mail ${MAILPIT_URL:-${INBUCKET_URL:-http://127.0.0.1:54324}}"
@@ -126,9 +127,12 @@ jobs:
           psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -tAc "select (select count(*) from public.destinations) > 0 and (select count(*) from public.recipes) > 0 and (select count(*) from public.bucket_list_activities) > 0 and (select count(*) from public.media_items) > 0" | grep -qx t
       - name: Create the administrator account
         run: |
-          curl -fsS -X POST "$NEXT_PUBLIC_SUPABASE_URL/auth/v1/admin/users" \
-            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "Content-Type: application/json" \
-            -d "{\"email\":\"$E2E_ADMIN_EMAIL\",\"password\":\"$E2E_ADMIN_PASSWORD\",\"email_confirm\":true}" > /dev/null
+          node -e '
+            const { createClient } = require("@supabase/supabase-js");
+            const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SECRET_KEY, { auth: { persistSession: false } });
+            sb.auth.admin.createUser({ email: process.env.E2E_ADMIN_EMAIL, password: process.env.E2E_ADMIN_PASSWORD, email_confirm: true })
+              .then(({ error }) => { if (error) { console.error(error.message); process.exit(1); } console.log("admin user created"); });
+          '
           psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -c "update public.user_profiles set role = 'admin' where id = (select id from auth.users where email = '$E2E_ADMIN_EMAIL');"
       - run: npm run build
       - run: npx playwright install --with-deps chromium

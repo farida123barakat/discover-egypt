@@ -6,7 +6,7 @@ import { defineConfig, devices } from "@playwright/test";
  * recorded demo tour. CI starts Supabase and passes its URL and keys (see .github/workflows/ci.yml).
  */
 const PORT = 3200;
-const need = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"];
+const need = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "SUPABASE_SECRET_KEY"];
 const missing = need.filter((k) => !process.env[k]);
 if (missing.length) throw new Error(`Start local Supabase first (npx supabase start) and set ${missing.join(", ")}.`);
 
@@ -40,8 +40,8 @@ export default defineConfig({
     env: {
       NEXT_PUBLIC_SITE_URL: `http://localhost:${PORT}`,
       NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+      SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY!,
       DEMO_LOCAL_MODE: "false",
       CRON_SECRET: "local-cron-secret-for-tests",
     },

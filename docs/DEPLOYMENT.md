@@ -21,44 +21,64 @@ npm run check        # typecheck, lint, unit + DB tests, build
 npm run test:e2e     # browser tests (set CHROME_PATH if needed)
 ```
 
-## 2. Create the database
+### Optional: run with a real local Supabase
 
-1. Create the Supabase project. Save the database password in a password manager.
-2. Install the CLI: `npm i -g supabase`, then `supabase login` and `supabase link --project-ref <your-ref>`.
-3. Apply the schema: `supabase db push` (runs `supabase/migrations/*`).
-4. Load content: `npm run db:seed:generate`, then paste `supabase/seed.sql` into **SQL Editor** and run it (or `psql "$DATABASE_URL" -f supabase/seed.sql`).
-5. Check: **Table editor** shows `destinations` (16 rows) and every table shows **RLS enabled**, including `memories`, `print_partners` and `print_requests`.
+Needs Docker. This is what CI does for its real-backend tests.
 
-## 3. Configure auth
+```bash
+npx supabase start          # Postgres, Auth, Storage and a test mailbox, with our migrations and seed
+npx supabase status         # shows the API URL and the publishable and secret keys
+```
 
-1. **Authentication → URL configuration:** Site URL = `https://your-domain`; Redirect URLs = `https://your-domain/auth/callback`.
-2. **Authentication → Providers → Email:** enable; turn *Confirm email* on.
-3. **Authentication → SMTP:** add your SMTP provider.
-4. Create the first admin: **Authentication → Users → Add user** (strong password), then in SQL Editor:
+Put the URL and keys in `.env.local` as `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY`, set `DEMO_LOCAL_MODE=false`, and run `npm run dev`. Sign-up and reset emails land in the local mailbox at <http://127.0.0.1:54324>. Run the real-backend browser tests with `npx playwright test -c playwright.supabase.config.ts`.
+
+## 2. Create the database (Supabase, free plan)
+
+The app uses **Supabase**: Postgres with sign-in and file storage built in. The free plan costs nothing and needs no card (500 MB database, 1 GB files at the time of writing). Free projects **pause after a week without activity**; the daily Vercel cron in step 4 touches the database every day, which keeps it awake.
+
+1. Sign up at [supabase.com](https://supabase.com) → **New project**. Region: Frankfurt (`eu-central-1`) is closest to Egypt. Save the database password in a password manager.
+2. **Project Settings → API Keys**. Copy the **Project URL**, the **Publishable key** (`sb_publishable_…`) and a **Secret key** (`sb_secret_…`). If you only see the older `anon` and `service_role` keys, those work too (use the `…_ANON_KEY` / `…_SERVICE_ROLE_KEY` variable names), but Supabase is retiring them.
+3. Apply the schema and content, either way:
+   - **With the CLI** (`npx supabase login`, `npx supabase link --project-ref <your-ref>`, then `npx supabase db push`, then `psql "<connection string>" -f supabase/seed.sql`), or
+   - **In the browser**: SQL Editor → paste and run each file in `supabase/migrations/` in name order, then `supabase/seed.sql`.
+4. Check: **Table editor** lists `destinations` (16 rows), `recipes`, `bucket_list_activities`, `media_items`, and every table shows **RLS enabled**. **Storage** lists `destination-photos` (public), `memories` and `print-jobs` (private).
+
+## 3. Configure sign-in (Supabase Auth)
+
+1. **Authentication → URL Configuration**: *Site URL* = `https://your-domain` (your Vercel URL to start with). *Redirect URLs*: add `https://your-domain/auth/callback**` and, for local work, `http://localhost:3000/auth/callback**`.
+2. **Authentication → Providers → Email**: enabled, **Confirm email** on, and set the **minimum password length** to **10**, the same as the app's own rule.
+3. **Authentication → Emails → SMTP**: Supabase's built-in email is only for testing and sends very few messages per hour. For real visitors add an SMTP provider; several have free plans (for example Resend, Brevo or Postmark's developer tier).
+4. Create the first administrator: **Authentication → Users → Add user** (email, a strong password, *Auto confirm*), then in **SQL Editor**:
    ```sql
-   update public.user_profiles set role = 'admin' where id = (select id from auth.users where email = 'admin@your-domain');
+   update public.user_profiles set role = 'admin' where id = (select id from auth.users where email = 'you@example.com');
    ```
-5. Turn on **MFA** for admin accounts (Authentication → Multi-factor).
+5. Turn on **multi-factor authentication** for that account (Authentication → Multi-factor).
 
-## 4. Deploy to Vercel
+What visitors get: create an account with email confirmation, sign in with a password or an emailed link, reset a forgotten password (`/account/new-password`), and sign out. All of it is tested against a real Supabase in CI (`e2e-supabase/`).
 
-1. Vercel → **Add New Project** → import the GitHub repo. Framework: Next.js (auto).
+## 4. Deploy to Vercel (free Hobby plan)
+
+Hobby is free for personal, non-commercial projects; a ministry or commercial site needs Pro.
+
+1. Sign in to [vercel.com](https://vercel.com) with GitHub → **Add New → Project** → import `discover-egypt`. Framework: Next.js (detected).
 2. **Environment variables** (Production and Preview):
 
 | Name | Value | Exposed to browser? |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | `https://your-domain` | yes |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Settings → API | yes (safe) |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Settings → API | yes (safe, RLS protects data) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API | **no — server only** |
+| `NEXT_PUBLIC_SITE_URL` | `https://your-domain` (your `*.vercel.app` URL at first) | yes |
+| `NEXT_PUBLIC_SUPABASE_URL` | Project URL | yes (safe) |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key (`sb_publishable_…`) | yes (safe: RLS protects data) |
+| `SUPABASE_SECRET_KEY` | Secret key (`sb_secret_…`) | **no — server only** |
 | `CRON_SECRET` | 16+ random characters (`openssl rand -hex 24`). Vercel Cron sends it to `/api/cron/print-sweep` | **no — server only** |
 
-   Do **not** set `DEMO_LOCAL_MODE`, `LOCAL_ADMIN_PASSWORD` or `SESSION_SECRET` in production. Local mode is refused on Vercel production anyway.
-3. Deploy. Then verify on the live URL:
-   - every page loads; photos and map tiles appear (CSP allows them);
+   Do **not** set `DEMO_LOCAL_MODE`, `LOCAL_ADMIN_PASSWORD` or `SESSION_SECRET` in production. Local demo mode is refused on Vercel production, and **a production build stops with a clear message if the Supabase variables are missing** (set `ALLOW_NO_BACKEND=true` only if you mean to deploy without a database).
+3. **Deploy.** Then update Supabase's *Site URL* and *Redirect URLs* (step 3.1) to the real address.
+4. Check on the live site:
+   - pages, photos and map tiles load; there is **no "Demo mode" notice** in the bottom-left corner (it appears only without a real database);
+   - create an account → the confirmation email arrives → you're signed in; sign out; sign in; reset the password;
    - submit a question → it appears in `/admin` → publish → it appears on `/community`;
-   - `/admin` redirects to login when signed out;
-   - response headers include `Content-Security-Policy` and `Strict-Transport-Security` (check at securityheaders.com).
+   - `/admin` sends signed-out visitors to the login page, and ordinary accounts are told they aren't administrators;
+   - response headers include `Content-Security-Policy` and `Strict-Transport-Security` (securityheaders.com).
 
 ## 5. Domain and HTTPS
 

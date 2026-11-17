@@ -23,7 +23,8 @@ export async function supabaseForUser() {
 
 /** Service-role client. Bypasses RLS — only for server code after an explicit admin check. */
 export function supabaseService() {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!key) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set");
+  // Supabase's secret key (sb_secret_…); the legacy service_role key still works in its place.
+  const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) throw new Error("SUPABASE_SECRET_KEY is not set");
   return createClient(publicEnv.supabaseUrl, key, { auth: { persistSession: false } });
 }

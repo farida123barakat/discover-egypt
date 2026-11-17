@@ -15,7 +15,13 @@ const securityHeaders = [
  * Set ALLOW_NO_BACKEND=true to deploy the browser-only features on purpose (e.g. a static showcase).
  */
 if (process.env.VERCEL_ENV === "production" && process.env.ALLOW_NO_BACKEND !== "true") {
-  const missing = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY", "NEXT_PUBLIC_SITE_URL"].filter((k) => !process.env[k]);
+  const has = (...names: string[]) => names.some((n) => !!process.env[n]);
+  const missing = [
+    !has("NEXT_PUBLIC_SUPABASE_URL") && "NEXT_PUBLIC_SUPABASE_URL",
+    !has("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "NEXT_PUBLIC_SUPABASE_ANON_KEY") && "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+    !has("SUPABASE_SECRET_KEY", "SUPABASE_SERVICE_ROLE_KEY") && "SUPABASE_SECRET_KEY",
+    !has("NEXT_PUBLIC_SITE_URL") && "NEXT_PUBLIC_SITE_URL",
+  ].filter(Boolean);
   if (missing.length) {
     throw new Error(`Production build stopped: set ${missing.join(", ")} in Vercel → Settings → Environment Variables (see docs/DEPLOYMENT.md), or set ALLOW_NO_BACKEND=true to deploy without a database on purpose.`);
   }
