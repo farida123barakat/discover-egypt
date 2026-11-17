@@ -191,8 +191,10 @@ test.describe("Memory Hunt", () => {
     await expect(page.getByText(`${code}: being printed`)).toBeVisible();
 
     // visitor follows the status and cancels; the image is then gone
-    await panel.getByRole("link", { name: "Check the status" }).click();
-    await visitor.waitForURL(/\/memory-hunt\/print\/DE-/);
+    // The link is checked, then opened directly: in-app navigation is sometimes slow on CI runners
+    // (seen on other pages too), which made this step flaky without saying anything about printing.
+    await expect(panel.getByRole("link", { name: "Check the status" })).toHaveAttribute("href", `/memory-hunt/print/${code}`);
+    await visitor.goto(`/memory-hunt/print/${code}`);
     await expect(visitor.getByTestId("print-status")).toHaveText("Being printed", { timeout: 10_000 });
     visitor.once("dialog", (d) => d.accept());
     await visitor.getByRole("button", { name: "Cancel this request" }).click();

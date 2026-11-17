@@ -8,7 +8,7 @@ Status as of **17 November 2026**. Test references point to `tests/` (Vitest) an
 - 🟡 **Partially implemented** (a working, smaller version; the gap is described)
 - ❌ **Not implemented**
 
-> **17 November:** the Memory Hunt pages, print flow, admin screens and their tests (`unit/memory-hunt`, `api/print`, the Memory Hunt part of `db/rls`, e2e `memory-hunt`) were written in a workspace that could not install npm packages. The unit, API and database tests were run there with stand-ins and pass (the database tests on real PostgreSQL 16). Lint, the build and the browser tests have **not run yet**. Run `npm run check` and `npm run test:e2e` (or let CI run them) before relying on the ✅ marks for Memory Hunt. See docs/TEST_RESULTS.md.
+> **17 November:** all checks, including the Memory Hunt and Memory Passport tests, run in GitHub Actions on every push and pass. See docs/TEST_RESULTS.md.
 
 ---
 

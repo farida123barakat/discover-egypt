@@ -1,35 +1,33 @@
 # Test results
 
-> **Needs a fresh run.** Everything below was recorded on 13 November, before the Memory Hunt work. On 17 November the Memory Hunt pages and these new suites were added. The workspace they were written in could not install npm packages, so `npm run check` and Playwright could not run. Parts were checked another way (see "Partial check, 17 November" below):
->
-> | Suite | File | Covers |
-> | --- | --- | --- |
-> | Unit | `tests/unit/memory-hunt.test.ts` | challenge content, points and achievements, postcard size and text wrapping, EXIF/GPS removal, collection codes, partner rules, tickets stored on the device |
-> | API | `tests/api/print.test.ts` | same-origin check, 5-per-hour limit, consent, JPEG only, status without personal data, wrong cancel token (403), closed request (409), admin 401, partner in use (409), expiry sweep and cron secret, 501 without a back end |
-> | Database | `tests/db/rls.test.ts` (two new `describe` blocks) | owner-only memories, storage folder policies, partners visible only when verified and active, verification note hidden, print requests server-side only |
-> | Unit | `tests/unit/passport.test.ts` | Memory Passport: page plan, padding to a multiple of four, stamp order and points, saddle-stitch printing order, preview spreads, screen-reader text, dates |
-> | End-to-end | `e2e/memory-hunt.spec.ts`, plus 4 pages in `a11y.spec.ts` and 3 in `responsive.spec.ts` | pick a challenge → capture → album → both PDFs → edit → delete; admin partner setup → visitor print request → status → cancel |
->
-> The database test setup also changed: table privileges are now granted the way Supabase does it (as default privileges, before the migrations run), so a migration's column-level `revoke` is tested as it will behave in production.
->
-> Run `npm run check` and `npm run test:e2e`, or let CI (`.github/workflows/ci.yml`) run them, then replace this note and the tables below with the new results.
+## Latest run: GitHub Actions, 17 November 2026
 
-### Partial check, 17 November
+Run [44158408773](https://github.com/farida123barakat/discover-egypt/actions/runs/44158408773) on branch `memory-hunt-finish` (commit `3aa2a24`), Ubuntu, Node 22, Playwright Chromium, production build, local demo mode. Every push and pull request now runs the same checks (`.github/workflows/ci.yml`).
 
-Without the project's dependencies, the test files were run with a small stand-in for Vitest and for the few Next.js classes the routes use (`NextRequest`, `NextResponse`, `cookies()`). Everything else was the real code, including zod 4 validation.
+| Check | Result |
+| --- | --- |
+| Type check, lint (`npm run check`) | ✅ 0 errors |
+| Vitest: unit, API and database permission tests (13 files) | ✅ **191 / 191** |
+| Production build | ✅ 37 routes |
+| Playwright: journeys, Memory Hunt (incl. Memory Passport PDFs), accessibility (axe on 23 pages), mobile | ✅ **58 / 58** (one flaky on the first attempt, see below) |
+| Dependency audit (`npm audit --omit=dev`) | ✅ 0 vulnerabilities |
 
-| Suite | Result | Notes |
-| --- | --- | --- |
-| `tests/unit/memory-hunt.test.ts` | 29 / 32 passed | The 3 photo-processing tests need jsdom and were not run |
-| `tests/unit/passport.test.ts` (Memory Passport) | 19 / 19 passed | Added later the same day |
-| Memory Passport pages in Chrome | All page types drawn without errors | Rendered in Google Chrome from the real drawing code, with sample memories and photos, and checked by eye |
-| `tests/api/print.test.ts` | 18 / 18 passed | Real route handlers in local demo mode |
-| `tests/api/routes.test.ts` (existing) | 15 / 15 passed | Run through the same stand-in as a cross-check |
-| `tests/db/rls.test.ts` | 24 / 24 passed | On a real **PostgreSQL 16** server instead of PGlite (through `psql`). A deliberate break (dropping the `verification_note` revoke and opening the memories select policy) made 4 tests fail, as it should |
-| TypeScript | No errors in the new or changed files | Checked with stand-in type declarations for packages that weren't installed, so JSX props were not type-checked |
-| Lint, build, Playwright (e2e, axe, mobile) | **Not run** | Need the full install |
+### Bugs the new CI found and fixed (17 November)
 
-Recorded **13 November 2026** in a Linux sandbox (Node 22, system Google Chrome, production build, local demo mode).
+1. **Unread response bodies kept requests open.** The print status page never read the body of a 404, so the browser never considered the request finished and the page never went idle (the accessibility scan waited forever). Every Memory Hunt fetch now reads its response body to the end. There's a regression test.
+2. **Admin sign-in limit tripped by the test suite itself.** Sign-in allows 5 attempts per 15 minutes per address; five test files sign in and CI retries, so later files were refused. Each admin test file now acts as its own visitor address. The limit is unchanged.
+3. **Sign-in relied on a refresh-then-redirect** to reach the dashboard. It now goes to `/admin` directly.
+4. **Hieroglyph uploads raced hydration in tests:** a file chosen before the page hydrated was lost. The tests choose it again until the photo step appears (a person can't be that fast).
+5. **Memory Passport stamps could show points the points total didn't count** (a memory with neither photo nor words). They now follow the same rule.
+
+### Still to look at
+
+- In-app link navigation is occasionally slow on CI runners (seen on Watch & Discover and on the album's "Check the status" link); the tests pass on retry. The print-flow test now checks the link and opens the status page directly. Worth profiling on the real deployment.
+- Not covered by automated tests: a live Supabase project, real photos and map tiles, screen readers (NVDA/VoiceOver), Safari and Firefox.
+
+## Earlier run (13 November 2026)
+
+Recorded in a Linux sandbox (Node 22, system Google Chrome, production build, local demo mode).
 
 ## Summary
 
