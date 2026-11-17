@@ -319,7 +319,10 @@ function PrintTickets({ tickets, onForget }: { tickets: PrintTicket[]; onForget:
     let alive = true;
     for (const t of tickets) {
       fetch(`/api/print/requests/${encodeURIComponent(t.code)}`)
-        .then(async (r) => (r.ok ? ((await r.json()) as { status: PrintStatus }).status : r.status === 404 ? ("missing" as const) : null))
+        .then(async (r) => {
+          const body = (await r.json().catch(() => null)) as { status?: PrintStatus } | null; // always drain the body
+          return r.ok ? (body?.status ?? null) : r.status === 404 ? ("missing" as const) : null;
+        })
         .then((s) => alive && s && setStatuses((x) => ({ ...x, [t.code]: s })))
         .catch(() => {});
     }

@@ -29,10 +29,12 @@ export function PrintStatusView({ code: raw }: { code: string }) {
     if (!valid) return;
     try {
       const r = await fetch(`/api/print/requests/${encodeURIComponent(code)}`, { cache: "no-store" });
+      // Always read the body, even for errors: an unread response keeps its connection busy.
+      const body = (await r.json().catch(() => null)) as Status | null;
       if (r.status === 404) return setState("missing");
       if (r.status === 429) return setState("busy");
-      if (!r.ok) return setState("error");
-      setData((await r.json()) as Status);
+      if (!r.ok || !body) return setState("error");
+      setData(body);
       setState("ok");
     } catch {
       setState("error");
@@ -49,6 +51,7 @@ export function PrintStatusView({ code: raw }: { code: string }) {
     if (!t) return;
     if (!confirm("Cancel this print request? The postcard image will be deleted from our system.")) return;
     const r = await fetch(`/api/print/requests/${encodeURIComponent(code)}`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token: t.cancelToken }) });
+    await r.json().catch(() => null);
     if (r.ok) {
       setMsg({ text: "Request cancelled. The postcard image has been deleted.", tone: "ok" });
       await load();

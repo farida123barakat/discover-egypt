@@ -15,7 +15,10 @@ export function usePrintPartners() {
   useEffect(() => {
     let alive = true;
     fetch("/api/print/partners")
-      .then((r) => (r.ok ? r.json() : { partners: [] }))
+      .then(async (r) => {
+        const body = (await r.json().catch(() => null)) as { partners?: PublicPartner[] } | null; // always drain the body
+        return r.ok && body ? body : { partners: [] };
+      })
       .then((d: { partners?: PublicPartner[] }) => alive && setPartners(d.partners ?? []))
       .catch(() => alive && setPartners([]));
     return () => {

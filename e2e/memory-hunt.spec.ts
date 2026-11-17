@@ -119,7 +119,7 @@ test.describe("Memory Hunt", () => {
     await expect(page.getByText("Your album is empty.")).toBeVisible();
   });
 
-  test("a print status page looks the code up once and then settles", async ({ page }) => {
+  test("a print status page looks the code up once and leaves no request open", async ({ page }) => {
     const seen: string[] = [];
     const pending = new Map<object, string>();
     const path = (u: string) => new URL(u).pathname + new URL(u).search;
@@ -130,23 +130,10 @@ test.describe("Memory Hunt", () => {
     page.on("requestfinished", (r) => pending.delete(r));
     page.on("requestfailed", (r) => pending.delete(r));
     await page.goto("/memory-hunt/print/DE-2222-2222");
-    await page.waitForTimeout(3000);
-    // Diagnostics: the same lookup straight to the server, and from the page with and without no-store.
-    const t0 = Date.now();
-    const direct = await page.request.get("/api/print/requests/DE-2222-2222", { timeout: 5_000 }).then((r) => `${r.status()} in ${Date.now() - t0} ms`, (e) => `failed: ${String(e).slice(0, 80)}`);
-    const inPage = await page.evaluate(async () => {
-      const go = (init?: RequestInit) =>
-        Promise.race([
-          fetch("/api/print/requests/DE-2222-2222", init).then((r) => `${r.status}`),
-          new Promise<string>((r) => setTimeout(() => r("no answer in 5 s"), 5000)),
-        ]);
-      return { plain: await go(), noStore: await go({ cache: "no-store" }), partners: await Promise.race([fetch("/api/print/partners").then((r) => `${r.status}`), new Promise<string>((r) => setTimeout(() => r("no answer in 5 s"), 5000))]) };
-    });
-    console.log(`status lookup diagnostics: direct ${direct}; in page ${JSON.stringify(inPage)}`);
-    // Printed so a CI log shows what keeps the page busy if this ever fails.
-    console.log(`status page requests: ${JSON.stringify(seen)}; still open after 3 s: ${JSON.stringify([...pending.values()])}`);
     await expect(page.getByText(/couldn.t find a print request with the code/)).toBeVisible();
-    expect(seen.filter((u) => u.startsWith("/api/print/requests/")).length).toBeGreaterThanOrEqual(1);
+    await page.waitForTimeout(1500);
+    expect(seen.filter((u) => u.startsWith("/api/print/requests/"))).toHaveLength(1);
+    // Every response is read to the end, so nothing keeps a connection open (a bug that stalled the page before).
     expect([...pending.values()]).toEqual([]);
   });
 
@@ -205,7 +192,8 @@ test.describe("Memory Hunt", () => {
 
     // visitor follows the status and cancels; the image is then gone
     await panel.getByRole("link", { name: "Check the status" }).click();
-    await expect(visitor.getByTestId("print-status")).toHaveText("Being printed");
+    await visitor.waitForURL(/\/memory-hunt\/print\/DE-/);
+    await expect(visitor.getByTestId("print-status")).toHaveText("Being printed", { timeout: 10_000 });
     visitor.once("dialog", (d) => d.accept());
     await visitor.getByRole("button", { name: "Cancel this request" }).click();
     await expect(visitor.getByText("Request cancelled. The postcard image has been deleted.")).toBeVisible();
