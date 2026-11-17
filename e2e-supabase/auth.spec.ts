@@ -64,7 +64,7 @@ test("forgotten password: email link, choose a new one, old one stops working", 
   await page.goto(await linkFromEmail(email, /reset/i));
   await expect(page).toHaveURL(/\/account\/new-password/);
   await expect(page.getByRole("heading", { name: "Choose a new password" })).toBeVisible();
-  await page.getByLabel("New password").fill(NEW_PASSWORD);
+  await page.getByLabel("New password", { exact: true }).fill(NEW_PASSWORD);
   await page.getByLabel("Type it again").fill("something else entirely");
   await page.getByRole("button", { name: "Save new password" }).click();
   await expect(page.getByText("The two passwords don't match.")).toBeVisible();

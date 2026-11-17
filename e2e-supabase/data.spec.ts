@@ -53,7 +53,7 @@ test("each visitor sees and changes only their own saved trips", async ({ browse
 
   // and the account page lists it for Ana
   await a.page.goto("/account");
-  await expect(a.page.getByText("Ana's Nile week")).toBeVisible();
+  await expect(a.page.getByRole("button", { name: "Load Ana's Nile week" })).toBeVisible();
   // signed-out visitors can't read or write trips at all
   const anon = await (await browser.newContext()).newPage();
   expect((await anon.request.get("/api/itineraries")).status()).toBe(401);
