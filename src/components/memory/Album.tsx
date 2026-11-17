@@ -11,6 +11,7 @@ import { PRINT_STATUS_LABEL, type PrintStatus } from "@/lib/print";
 import { supabaseConfigured } from "@/lib/env";
 import { loadTickets, removeTicket, saveTickets, type PrintTicket } from "@/lib/print-tickets";
 import { Achievements } from "./Hunt";
+import { PassportBook } from "./PassportBook";
 import { PostcardPreview } from "./PostcardPreview";
 import { PrintRequestPanel, usePrintPartners } from "./PrintRequest";
 import { Toast } from "../ui";
@@ -80,7 +81,7 @@ export function Album() {
                 )
               }
             >
-              <FileDown aria-hidden="true" size={16} /> {busy === "album" ? "Making your album…" : "Download album (PDF)"}
+              <FileDown aria-hidden="true" size={16} /> {busy === "album" ? "Making your album…" : "Postcard album (A4 PDF)"}
             </button>
           )}
           <Link href="/memory-hunt#challenges" className="btn btn-ghost">
@@ -100,6 +101,8 @@ export function Album() {
           }}
         />
       )}
+
+      {memories.length > 0 && <PassportBook memories={memories} />}
 
       <section aria-labelledby="mem-h">
         <h2 id="mem-h" className="text-4xl">

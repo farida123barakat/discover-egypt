@@ -7,6 +7,7 @@
 > | Unit | `tests/unit/memory-hunt.test.ts` | challenge content, points and achievements, postcard size and text wrapping, EXIF/GPS removal, collection codes, partner rules, tickets stored on the device |
 > | API | `tests/api/print.test.ts` | same-origin check, 5-per-hour limit, consent, JPEG only, status without personal data, wrong cancel token (403), closed request (409), admin 401, partner in use (409), expiry sweep and cron secret, 501 without a back end |
 > | Database | `tests/db/rls.test.ts` (two new `describe` blocks) | owner-only memories, storage folder policies, partners visible only when verified and active, verification note hidden, print requests server-side only |
+> | Unit | `tests/unit/passport.test.ts` | Memory Passport: page plan, padding to a multiple of four, stamp order and points, saddle-stitch printing order, preview spreads, screen-reader text, dates |
 > | End-to-end | `e2e/memory-hunt.spec.ts`, plus 4 pages in `a11y.spec.ts` and 3 in `responsive.spec.ts` | pick a challenge → capture → album → both PDFs → edit → delete; admin partner setup → visitor print request → status → cancel |
 >
 > The database test setup also changed: table privileges are now granted the way Supabase does it (as default privileges, before the migrations run), so a migration's column-level `revoke` is tested as it will behave in production.
@@ -20,6 +21,8 @@ Without the project's dependencies, the test files were run with a small stand-i
 | Suite | Result | Notes |
 | --- | --- | --- |
 | `tests/unit/memory-hunt.test.ts` | 29 / 32 passed | The 3 photo-processing tests need jsdom and were not run |
+| `tests/unit/passport.test.ts` (Memory Passport) | 19 / 19 passed | Added later the same day |
+| Memory Passport pages in Chrome | All page types drawn without errors | Rendered in Google Chrome from the real drawing code, with sample memories and photos, and checked by eye |
 | `tests/api/print.test.ts` | 18 / 18 passed | Real route handlers in local demo mode |
 | `tests/api/routes.test.ts` (existing) | 15 / 15 passed | Run through the same stand-in as a cross-check |
 | `tests/db/rls.test.ts` | 24 / 24 passed | On a real **PostgreSQL 16** server instead of PGlite (through `psql`). A deliberate break (dropping the `verification_note` revoke and opening the memories select policy) made 4 tests fail, as it should |

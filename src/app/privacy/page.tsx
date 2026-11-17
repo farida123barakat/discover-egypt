@@ -24,7 +24,7 @@ export default function PrivacyPage() {
       </h2>
       <h3 className="mt-6 text-xl">On your device</h3>
       <p>
-        Memories (photos, captions, stories, the date and destination you choose) are saved in your browser&apos;s storage (IndexedDB) and are not sent to us. Photos are resized and re-saved on your device before they are stored, which removes hidden information such as the camera&apos;s GPS position. If you tap &ldquo;Use my location&rdquo;, your position is rounded and used once, on your device, to suggest the nearest destination; it is not saved or sent. Postcards and the album PDF are made on your device too. Anyone who uses this browser can see your album, so delete it on shared computers.
+        Memories (photos, captions, stories, the date and destination you choose) are saved in your browser&apos;s storage (IndexedDB) and are not sent to us. Photos are resized and re-saved on your device before they are stored, which removes hidden information such as the camera&apos;s GPS position. If you tap &ldquo;Use my location&rdquo;, your position is rounded and used once, on your device, to suggest the nearest destination; it is not saved or sent. Postcards, the album PDF and the Memory Passport are made on your device too; the name you type for your passport is kept only in this browser. Anyone who uses this browser can see your album, so delete it on shared computers.
       </p>
       <h3 className="mt-6 text-xl">Cloud backup (optional, needs an account)</h3>
       <p>

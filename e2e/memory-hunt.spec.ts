@@ -1,4 +1,10 @@
-import { expect, test, type Page } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { expect, test, type Download, type Page } from "@playwright/test";
+
+/** Pages in a PDF made by jsPDF: one "/Type /Page" object per page. */
+function pdfPages(d: Download) {
+  return d.path().then((p) => (readFileSync(p!, "latin1").match(/\/Type\s*\/Page(?![s\w])/g) ?? []).length);
+}
 
 /** A real image made in the browser, so the photo goes through the same decode and re-encode as a camera photo. */
 async function testPhoto(page: Page) {
@@ -58,8 +64,36 @@ test.describe("Memory Hunt", () => {
 
     const [postcard] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: /Print-ready PDF.*Gold on the water/ }).click()]);
     expect(postcard.suggestedFilename()).toMatch(/^discover-egypt-postcard-aswan-.*\.pdf$/);
-    const [album] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download album (PDF)" }).click()]);
+    const [album] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Postcard album (A4 PDF)" }).click()]);
     expect(album.suggestedFilename()).toBe("discover-egypt-my-album.pdf");
+
+    // the Memory Passport: cover, traveller page, stamps, the memory's page, endorsements, notes, back = 8 pages
+    const book = page.getByTestId("passport-book");
+    await expect(book.getByRole("heading", { name: "Your Memory Passport" })).toBeVisible();
+    await expect(book.getByTestId("passport-range")).toHaveText("Page 1 of 8");
+    await expect(book.getByRole("img", { name: /Cover: Memory Passport/ })).toHaveAttribute("data-ready", "true");
+    await book.getByLabel("Name in your passport (optional)").fill("Maya Jensen");
+    await book.getByRole("button", { name: "Next" }).click();
+    await expect(book.getByTestId("passport-range")).toHaveText("Pages 2–3 of 8");
+    await expect(book.getByRole("img", { name: /Traveller page for Maya Jensen: 1 memory, 1 of 20 challenges, 10 points, places: Aswan/ })).toBeVisible();
+    await expect(book.getByRole("img", { name: /Stamps page 1 of 1: Aswan, A felucca at sunset/ })).toHaveAttribute("data-ready", "true");
+    await book.getByRole("button", { name: "Next" }).click();
+    await expect(book.getByRole("img", { name: /Memory page: Aswan, “Gold on the water”, with photo/ })).toBeVisible();
+    for (let i = 0; i < 2; i++) await book.getByRole("button", { name: "Next" }).click();
+    await expect(book.getByTestId("passport-range")).toHaveText("Page 8 of 8");
+    await expect(book.getByRole("button", { name: "Next" })).toBeDisabled();
+
+    const [booklet] = await Promise.all([page.waitForEvent("download"), book.getByRole("button", { name: "Download booklet (A4, fold & staple)" }).click()]);
+    expect(booklet.suggestedFilename()).toBe("discover-egypt-memory-passport-booklet-a4.pdf");
+    expect(await pdfPages(booklet)).toBe(4); // 2 sheets, printed on both sides
+    await expect(book.getByText("Your passport booklet has been downloaded.")).toBeVisible();
+    const [shop] = await Promise.all([page.waitForEvent("download"), book.getByRole("button", { name: "Pages for a print shop" }).click()]);
+    expect(shop.suggestedFilename()).toBe("discover-egypt-memory-passport-print-shop.pdf");
+    expect(await pdfPages(shop)).toBe(8);
+
+    // the name is kept on this device for next time
+    await page.reload();
+    await expect(page.getByLabel("Name in your passport (optional)")).toHaveValue("Maya Jensen");
 
     // the memory is kept on the device
     await page.reload();
