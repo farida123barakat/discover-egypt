@@ -15,7 +15,6 @@ async function post(url: string, body: unknown) {
 }
 
 export function AdminLogin({ mode }: { mode: "local" | "supabase" }) {
-  const router = useRouter();
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
