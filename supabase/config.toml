@@ -22,7 +22,7 @@ enabled = true
 port = 54323
 
 # Local test mailbox: every auth email lands here (web UI on this port).
-[inbucket]
+[local_smtp]
 enabled = true
 port = 54324
 
