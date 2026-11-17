@@ -148,7 +148,9 @@ jobs:
           retention-days: 7
       - name: Convert the demo video to MP4
         if: always() && hashFiles('demo-output/*.webm') != ''
-        run: ffmpeg -loglevel error -y -i demo-output/discover-egypt-demo.webm -c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p -movflags +faststart demo-output/discover-egypt-demo.mp4
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+          ffmpeg -loglevel error -y -i demo-output/discover-egypt-demo.webm -c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p -movflags +faststart demo-output/discover-egypt-demo.mp4
       - uses: actions/upload-artifact@v4
         if: always() && hashFiles('demo-output/*.png') != ''
         with:
