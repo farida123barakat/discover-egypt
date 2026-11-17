@@ -83,3 +83,99 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm run audit:deps
+
+  supabase:
+    name: Real Supabase (local) — sign-in, data, storage, demo recording
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: write # publishes the demo recording to the "demo" branch
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_SITE_URL: http://localhost:3200
+      E2E_ADMIN_EMAIL: admin@discover-egypt.test
+      E2E_ADMIN_PASSWORD: admin password for tests 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start Supabase (Postgres, Auth, Storage, test mailbox) with our migrations and seed
+        run: |
+          supabase --version
+          supabase start -x studio,imgproxy,vector,logflare,edge-runtime,realtime,supavisor,postgres-meta
+      - name: Read the local URLs and keys (local defaults, not secrets)
+        run: |
+          supabase status -o env > /tmp/sb.env
+          set -a; . /tmp/sb.env; set +a
+          echo "NEXT_PUBLIC_SUPABASE_URL=${API_URL}" >> "$GITHUB_ENV"
+          # the new key types, as a new hosted project has them (legacy keys only if this CLI lacks them)
+          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${PUBLISHABLE_KEY:-$ANON_KEY}" >> "$GITHUB_ENV"
+          echo "SUPABASE_SECRET_KEY=${SECRET_KEY:-$SERVICE_ROLE_KEY}" >> "$GITHUB_ENV"
+          echo "SUPABASE_DB_URL=${DB_URL}" >> "$GITHUB_ENV"
+          echo "MAIL_URL=${MAILPIT_URL:-${INBUCKET_URL:-http://127.0.0.1:54324}}" >> "$GITHUB_ENV"
+          echo "Local stack: API ${API_URL}, mail ${MAILPIT_URL:-${INBUCKET_URL:-http://127.0.0.1:54324}}"
+      - name: "Check the database: tables, RLS and seed"
+        run: |
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -c "select relname, relrowsecurity from pg_class where relnamespace = 'public'::regnamespace and relkind = 'r' order by 1;"
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -tAc "select count(*) from pg_class where relnamespace = 'public'::regnamespace and relkind = 'r' and not relrowsecurity" | grep -qx 0
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -tAc "select (select count(*) from public.destinations) > 0 and (select count(*) from public.recipes) > 0 and (select count(*) from public.bucket_list_activities) > 0 and (select count(*) from public.media_items) > 0" | grep -qx t
+      - name: Create the administrator account
+        run: |
+          node -e '
+            const { createClient } = require("@supabase/supabase-js");
+            const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SECRET_KEY, { auth: { persistSession: false } });
+            sb.auth.admin.createUser({ email: process.env.E2E_ADMIN_EMAIL, password: process.env.E2E_ADMIN_PASSWORD, email_confirm: true })
+              .then(({ error }) => { if (error) { console.error(error.message); process.exit(1); } console.log("admin user created"); });
+          '
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -c "update public.user_profiles set role = 'admin' where id = (select id from auth.users where email = '$E2E_ADMIN_EMAIL');"
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Browser tests against the real backend, then the recorded demo tour
+        run: npx playwright test -c playwright.supabase.config.ts
+        env:
+          CI: "true"
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-supabase
+          path: playwright-report-supabase
+          retention-days: 7
+      - name: Convert the demo video to MP4
+        if: always() && hashFiles('demo-output/*.webm') != ''
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+          ffmpeg -loglevel error -y -i demo-output/discover-egypt-demo.webm -c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p -movflags +faststart demo-output/discover-egypt-demo.mp4
+      - uses: actions/upload-artifact@v4
+        if: always() && hashFiles('demo-output/*.png') != ''
+        with:
+          name: demo
+          path: demo-output
+          retention-days: 30
+      - name: Publish the demo to the "demo" branch
+        if: always() && hashFiles('demo-output/*.png') != ''
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          mkdir -p /tmp/demo && cp demo-output/* /tmp/demo/ && cd /tmp/demo
+          {
+            echo "# Discover Egypt — recorded demo"
+            echo
+            echo "Recorded automatically by CI from commit \`${GITHUB_SHA::7}\` on $(date -u '+%d %B %Y'), with the site running on a real (local) Supabase database: sign-up with email confirmation, the Memory Hunt and Memory Passport, cloud backup, and the admin dashboard."
+            echo
+            echo "**Video:** [discover-egypt-demo.mp4](discover-egypt-demo.mp4)"
+            echo
+            for f in *.png; do echo "### ${f%.png}"; echo; echo "![${f%.png}]($f)"; echo; done
+          } > README.md
+          git init -q -b demo
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Demo recording from ${GITHUB_SHA::7}"
+          git push -q -f "https://x-access-token:${TOKEN}@github.com/${REPO}.git" demo

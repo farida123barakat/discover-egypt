@@ -221,3 +221,50 @@ describe("Memory Hunt: printing partners and requests", () => {
     await expect(as("authenticated", ALICE, () => db.exec(`insert into storage.objects (bucket_id,name) values ('print-jobs','${ALICE}/x.jpg')`))).rejects.toThrow();
   });
 });
+
+describe("editorial content: recipes, bucket list and films", () => {
+  it("seeds every recipe, activity and film from src/content", async () => {
+    const n = async (t: string) => (await db.query<{ n: number }>(`select count(*)::int as n from public.${t}`)).rows[0].n;
+    expect(await n("recipes")).toBeGreaterThan(0);
+    expect(await n("bucket_list_activities")).toBeGreaterThan(0);
+    expect(await n("media_items")).toBeGreaterThan(0);
+  });
+
+  it("shows visitors only published activities and films, and every recipe's review status", async () => {
+    const drafts = await db.query<{ n: number }>("select count(*)::int as n from public.media_items where status = 'draft'");
+    expect(drafts.rows[0].n).toBeGreaterThan(0); // the seed has drafts, so this test means something
+    const films = await as("anon", null, () => db.query<{ status: string }>("select status from public.media_items"));
+    expect(films.rows.every((r) => r.status === "published")).toBe(true);
+    const acts = await as("anon", null, () => db.query<{ published: boolean }>("select published from public.bucket_list_activities"));
+    expect(acts.rows.length).toBeGreaterThan(0);
+    expect(acts.rows.every((r) => r.published)).toBe(true);
+    const all = (await db.query<{ n: number }>("select count(*)::int as n from public.recipes")).rows[0].n;
+    expect((await as("anon", null, () => db.query("select slug, status from public.recipes"))).rows).toHaveLength(all);
+  });
+
+  it("lets admins, and only admins, change official content", async () => {
+    await as("authenticated", ALICE, () => db.exec(`update public.recipes set status = 'approved'`));
+    await as("anon", null, () => db.exec(`update public.media_items set featured = true`));
+    expect((await db.query<{ n: number }>("select count(*)::int as n from public.recipes where status = 'approved'")).rows[0].n).toBe(0);
+    await expect(as("authenticated", BOB, () => db.exec(`insert into public.bucket_list_activities (id, title, published, data) values ('fake-activity', 'Fake one', true, '{}')`))).rejects.toThrow();
+    await as("authenticated", ADMIN, () => db.exec(`insert into public.bucket_list_activities (id, title, published, data) values ('admin-activity', 'Admin made this', false, '{}')`));
+    const seenByAdmin = await as("authenticated", ADMIN, () => db.query("select id from public.bucket_list_activities where id = 'admin-activity'"));
+    expect(seenByAdmin.rows).toHaveLength(1); // admins see unpublished drafts
+    expect((await as("anon", null, () => db.query("select id from public.bucket_list_activities where id = 'admin-activity'"))).rows).toHaveLength(0);
+    const slug = (await db.query<{ slug: string }>("select slug from public.recipes limit 1")).rows[0].slug;
+    await as("authenticated", ADMIN, () => db.exec(`update public.recipes set status = 'approved', reviewer = 'Discover Egypt editor' where slug = '${slug}'`));
+    expect((await db.query<{ status: string }>(`select status from public.recipes where slug = '${slug}'`)).rows[0].status).toBe("approved");
+  });
+
+  it("keeps each visitor's bucket-list progress private, and sync can't write into someone else's", async () => {
+    await as("authenticated", ALICE, () => db.exec(`insert into public.user_bucket_list (activity_id, added, completed, completed_at) values ('felucca-sunset', true, true, now())`));
+    expect((await as("authenticated", ALICE, () => db.query("select activity_id from public.user_bucket_list"))).rows).toHaveLength(1);
+    expect((await as("authenticated", BOB, () => db.query("select activity_id from public.user_bucket_list"))).rows).toHaveLength(0);
+    expect((await as("authenticated", ADMIN, () => db.query("select activity_id from public.user_bucket_list"))).rows).toHaveLength(0);
+    expect((await as("anon", null, () => db.query("select activity_id from public.user_bucket_list"))).rows).toHaveLength(0);
+    await expect(as("authenticated", BOB, () => db.exec(`insert into public.user_bucket_list (user_id, activity_id, added) values ('${ALICE}', 'planted-one', true)`))).rejects.toThrow();
+    await as("authenticated", BOB, () => db.exec(`delete from public.user_bucket_list`)); // what sync does first: may only touch Bob's rows
+    expect((await db.query<{ n: number }>("select count(*)::int as n from public.user_bucket_list")).rows[0].n).toBe(1);
+    await expect(as("authenticated", ALICE, () => db.exec(`insert into public.user_bucket_list (activity_id, completed) values ('khan-el-khalili', true)`))).rejects.toThrow(); // completed needs a date
+  });
+});

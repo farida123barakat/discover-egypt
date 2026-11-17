@@ -1,6 +1,20 @@
 # Test results
 
-## Latest run: GitHub Actions, 17 November 2026
+## Latest run: against a real database, 17 November 2026
+
+Run [44173142384](https://github.com/farida123barakat/discover-egypt/actions/runs/44173142384) on branch `accounts-and-real-database`. The CI job "Real Supabase (local)" starts the actual Supabase stack (Postgres 17, Auth, Storage and a test mailbox), applies every migration and the seed, and runs the site against it. No demo mode and no mocks.
+
+| Check | Result |
+| --- | --- |
+| Every public table has row-level security on, seed loaded | ✅ |
+| Sign-in and accounts (`e2e-supabase/auth.spec.ts`): sign-up with a real confirmation email, duplicate sign-up looks identical, wrong password, sign in/out, forgotten password via email link (old password stops working), unknown-address reset looks identical, new-password page guarded, magic link, broken links and open-redirect attempts | ✅ **9 / 9** |
+| Data and permissions (`e2e-supabase/data.spec.ts`): trips private to each visitor, bucket-list sync, memory backup to the visitor's own storage folder and restore on a second device, admin-only dashboard and admin APIs (401 for visitors), photo upload (401 anonymous/visitor, 415 fake PNG), moderation, recipe approval, bucket activities, draft films hidden | ✅ **7 / 7** |
+| Recorded demo tour (`e2e-supabase/demo.spec.ts`) | ✅ published to the [`demo` branch](https://github.com/farida123barakat/discover-egypt/tree/demo) |
+| Same run: type check, lint, 202 Vitest tests (14 files), build, 58 local-mode Playwright tests, dependency audit | ✅ |
+
+The only failures on the way were in the new tests themselves (ambiguous selectors, such as Next.js's hidden route announcer also having `role="alert"`), not in the app.
+
+## Earlier run: GitHub Actions, 17 November 2026
 
 Run [44158408773](https://github.com/farida123barakat/discover-egypt/actions/runs/44158408773) on branch `memory-hunt-finish` (commit `3aa2a24`), Ubuntu, Node 22, Playwright Chromium, production build, local demo mode. Every push and pull request now runs the same checks (`.github/workflows/ci.yml`).
 
@@ -23,7 +37,7 @@ Run [44158408773](https://github.com/farida123barakat/discover-egypt/actions/run
 ### Still to look at
 
 - In-app link navigation is occasionally slow on CI runners (seen on Watch & Discover and on the album's "Check the status" link); the tests pass on retry. The print-flow test now checks the link and opens the status page directly. Worth profiling on the real deployment.
-- Not covered by automated tests: a live Supabase project, real photos and map tiles, screen readers (NVDA/VoiceOver), Safari and Firefox.
+- Not covered by automated tests: a hosted Supabase project (the local stack is the same software), real photos and map tiles, screen readers (NVDA/VoiceOver), Safari and Firefox.
 
 ## Earlier run (13 November 2026)
 

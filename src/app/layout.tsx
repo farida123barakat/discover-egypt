@@ -8,6 +8,7 @@ import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Providers } from "@/components/Providers";
+import { BackendNotice } from "@/components/BackendNotice";
 import { publicEnv } from "@/lib/env";
 
 export const metadata: Metadata = {
@@ -43,6 +44,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {children}
           </main>
           <SiteFooter />
+          <BackendNotice />
         </Providers>
       </body>
     </html>

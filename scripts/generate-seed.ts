@@ -9,6 +9,9 @@ import { CATEGORIES, destinations } from "../src/content/destinations";
 import { dishes, eras } from "../src/content/culture";
 import { events, prices } from "../src/content/practical";
 import { walks } from "../src/content/walks";
+import { recipes } from "../src/content/food";
+import { bucketSeed } from "../src/content/bucket";
+import { mediaSeed } from "../src/content/media";
 
 const q = (v: unknown): string => {
   if (v === null || v === undefined) return "null";
@@ -65,6 +68,26 @@ for (const p of prices) {
   out.push(
     `insert into public.travel_prices (id, item, min_egp, max_egp, kind, status, last_verified, source_name, source_url) values (` +
       [q(p.id), q(p.item), q(p.egp[0]), q(p.egp[1]), q(p.kind), q(p.status), q(p.lastVerified), q(p.source?.name ?? null), q(p.source?.url ?? null)].join(", ") +
+      `) on conflict (id) do nothing;`,
+  );
+}
+
+// Editorial content managed in the admin dashboard. "do nothing" on conflict: re-seeding never
+// overwrites an admin's later changes.
+for (const r of recipes) {
+  out.push(`insert into public.recipes (slug, status, last_reviewed, reviewer) values (${[q(r.slug), q(r.review.status), q(r.review.lastReviewed), q(r.review.reviewer ?? null)].join(", ")}) on conflict (slug) do nothing;`);
+}
+for (const a of bucketSeed) {
+  out.push(
+    `insert into public.bucket_list_activities (id, title, destination_slug, published, featured, data, last_reviewed, created_at) values (` +
+      [q(a.id), q(a.title), q(a.destination), q(a.published), q(a.featured), `${q(JSON.stringify(a))}::jsonb`, q(a.lastReviewed), q(a.createdAt)].join(", ") +
+      `) on conflict (id) do nothing;`,
+  );
+}
+for (const m of mediaSeed) {
+  out.push(
+    `insert into public.media_items (id, title, kind, destinations, status, featured, data, last_reviewed, created_at) values (` +
+      [q(m.id), q(m.title), q(m.kind), arr(m.destinations, "text"), q(m.status), q(m.featured), `${q(JSON.stringify(m))}::jsonb`, q(m.lastReviewed), q(m.createdAt)].join(", ") +
       `) on conflict (id) do nothing;`,
   );
 }
