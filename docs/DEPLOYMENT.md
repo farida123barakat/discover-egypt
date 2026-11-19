@@ -28,6 +28,21 @@ Switched off without a database (and hidden, so nothing looks broken): sign-in a
 
 Any host that runs Node 22 also works: `npm ci && npm run build && npm start`.
 
+### Or: GitHub Pages (free, no other account)
+
+The workflow `.github/workflows/pages.yml` builds the front-end-only site as plain files (`scripts/build-pages.sh`), tests them the way Pages serves them (`e2e-pages/`), and publishes them on every push to `main`. The address is `https://<your-user>.github.io/discover-egypt/`.
+
+One-time setup:
+
+1. **Settings → General → Danger zone → Change visibility → Public.** On a free GitHub plan, Pages only works for public repositories. (Skip this on GitHub Pro.) Nothing secret is stored in the repo.
+2. **Settings → Pages → Build and deployment → Source: GitHub Actions.**
+3. Optional: **Settings → Secrets and variables → Actions → Variables → New variable** `CONTACT_EMAIL`, so the forms can prepare emails to you.
+4. **Actions → Live demo (GitHub Pages) → Run workflow**, or push to `main`. The run's summary shows the link.
+
+What's different on Pages: there is no server, so the exchange-rate lookup goes straight from the browser to the free provider, and GitHub's own response headers apply instead of the site's stricter security headers (Content-Security-Policy). Everything else is the same as the front-end-only site above.
+
+Build it yourself with `bash scripts/build-pages.sh` (output in `pages-out/`), then `npx playwright test -c playwright.pages.config.ts` to test it.
+
 ## 1. Run locally first
 
 ```bash

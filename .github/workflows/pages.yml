@@ -9,7 +9,7 @@ name: Live demo (GitHub Pages)
 
 on:
   push:
-    branches: [main, github-pages] # TEMP: github-pages only while testing this branch
+    branches: [main]
   workflow_dispatch:
 
 permissions:

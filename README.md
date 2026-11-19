@@ -4,7 +4,7 @@
 
 A tourism platform concept for Egypt. It helps visitors **get inspired**, **plan a trip** and **travel well** once they arrive.
 
-**Front-end only by default:** no database and no accounts. Everything a visitor saves stays in their own browser, forms open the visitor's email app, and it deploys for free with no settings ([how](docs/DEPLOYMENT.md#front-end-only-the-default)). A Supabase database can be added later for accounts and the admin dashboard; that code is included and tested, but optional.
+**Front-end only by default:** no database and no accounts. Everything a visitor saves stays in their own browser, forms open the visitor's email app, and it deploys for free with no settings, on Vercel or as plain files on GitHub Pages ([how](docs/DEPLOYMENT.md#front-end-only-the-default)). A Supabase database can be added later for accounts and the admin dashboard; that code is included and tested, but optional.
 
 > **Status:** concept and student project. It is **not** an official Ministry of Tourism and Antiquities website and is **not deployed**. Official facts are shown with a "last verified" date and a source, or are labelled *awaiting verification*.
 
