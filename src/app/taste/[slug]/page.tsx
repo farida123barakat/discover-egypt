@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ChefHat, Clock, Hourglass } from "lucide-react";
-import { regionById, type Recipe } from "@/content/food";
+import { recipes as seedRecipes, regionById, type Recipe } from "@/content/food";
 import { getVisibleRecipes } from "@/lib/store";
 import { backendMode } from "@/lib/env";
 import { DishVisual } from "@/components/taste/TasteExplorer";
@@ -10,9 +10,12 @@ import { RecipeView } from "@/components/taste/RecipeView";
 
 export const dynamic = "force-dynamic";
 
-/** Every page this route has, for the plain-files GitHub Pages build. */
-export async function generateStaticParams() {
-  return (await getVisibleRecipes()).map((r) => ({ slug: r.slug }));
+/**
+ * Every page this route has, for the plain-files GitHub Pages build. Taken from the content files,
+ * never the database: this runs at build time, outside any request.
+ */
+export function generateStaticParams() {
+  return seedRecipes.map((r) => ({ slug: r.slug }));
 }
 
 async function find(slug: string) {

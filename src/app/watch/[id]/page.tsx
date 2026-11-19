@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Clock, ExternalLink, MapPin, TriangleAlert } from "lucide-react";
 import { getDestination } from "@/content/destinations";
-import { formatDuration } from "@/content/media";
+import { formatDuration, mediaSeed } from "@/content/media";
 import { getVisibleMedia } from "@/lib/store";
 import { backendMode } from "@/lib/env";
 import { MediaPlayer } from "@/components/media/MediaPlayer";
@@ -11,9 +11,12 @@ import { MediaCard } from "@/components/media/MediaCard";
 
 export const dynamic = "force-dynamic";
 
-/** Every page this route has, for the plain-files GitHub Pages build. */
-export async function generateStaticParams() {
-  return (await getVisibleMedia()).map((m) => ({ id: m.id }));
+/**
+ * Every page this route has, for the plain-files GitHub Pages build. Taken from the content files,
+ * never the database: this runs at build time, outside any request.
+ */
+export function generateStaticParams() {
+  return mediaSeed.map((m) => ({ id: m.id }));
 }
 
 async function find(id: string) {
