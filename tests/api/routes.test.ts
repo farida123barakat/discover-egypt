@@ -122,12 +122,14 @@ describe("admin", () => {
 });
 
 describe("recipe review gate", () => {
-  it("shows drafts only in local demo mode; elsewhere only approved recipes are public", async () => {
+  it("without a database every recipe shows, and drafts stay marked as drafts", async () => {
     const all = await store.getVisibleRecipes();
     expect(all.length).toBeGreaterThan(0);
-    process.env.DEMO_LOCAL_MODE = "false"; // backend "none": behaves like the live site without demo data
+    process.env.DEMO_LOCAL_MODE = "false"; // backend "none": the front-end-only site
     try {
-      expect(await store.getVisibleRecipes()).toHaveLength(0);
+      const visible = await store.getVisibleRecipes();
+      expect(visible).toHaveLength(all.length);
+      expect(visible.some((r) => r.review.status === "draft")).toBe(true);
     } finally {
       process.env.DEMO_LOCAL_MODE = "true";
     }
@@ -144,8 +146,10 @@ describe("recipe review gate", () => {
     expect(k.review.status).toBe("approved");
     process.env.DEMO_LOCAL_MODE = "false";
     try {
-      // With no backend there are no stored approvals, so nothing is public — fail safe.
-      expect(await store.getVisibleRecipes()).toHaveLength(0);
+      // With no backend there are no stored approvals: recipes show with their status from the content files,
+      // so a draft is never presented as reviewed.
+      const k2 = (await store.getVisibleRecipes()).find((x) => x.slug === "koshari")!;
+      expect(k2.review.status).toBe("draft");
     } finally {
       process.env.DEMO_LOCAL_MODE = "true";
     }
