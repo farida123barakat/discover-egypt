@@ -10,6 +10,11 @@ import { RecipeView } from "@/components/taste/RecipeView";
 
 export const dynamic = "force-dynamic";
 
+/** Every page this route has, for the plain-files GitHub Pages build. */
+export async function generateStaticParams() {
+  return (await getVisibleRecipes()).map((r) => ({ slug: r.slug }));
+}
+
 async function find(slug: string) {
   const list = await getVisibleRecipes();
   return { r: list.find((x) => x.slug === slug), list };

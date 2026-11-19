@@ -26,7 +26,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const mode = backendMode();
   // Reading the per-request CSP nonce makes every page render dynamically, so Next.js can stamp the
   // nonce on its scripts. Statically prerendered pages would otherwise be blocked by the strict CSP.
-  await headers();
+  // The GitHub Pages build is plain files with no server: no request to read, and no CSP header to match.
+  if (process.env.STATIC_EXPORT !== "true") await headers();
   // dir/lang are set here so Arabic (rtl) can be added later via a [locale] segment.
   return (
     <html lang="en" dir="ltr">

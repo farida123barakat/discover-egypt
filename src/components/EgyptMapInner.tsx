@@ -1,4 +1,5 @@
 "use client";
+import { withBase } from "@/lib/base-path";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { MapContainer, Marker, Polyline, Popup, TileLayer, useMap } from "react-leaflet";
@@ -63,7 +64,7 @@ export default function EgyptMapInner({
             <strong style={{ fontFamily: "Fraunces Variable, serif", fontSize: 16 }}>{p.label}</strong>
             {p.sub && <div style={{ marginTop: 4 }}>{p.sub}</div>}
             {p.href && (
-              <a href={p.href} style={{ display: "inline-block", marginTop: 6, color: "#2f6f6b", fontWeight: 600 }}>
+              <a href={withBase(p.href)} style={{ display: "inline-block", marginTop: 6, color: "#2f6f6b", fontWeight: 600 }}>
                 Explore →
               </a>
             )}

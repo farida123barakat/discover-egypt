@@ -28,16 +28,29 @@ const securityHeaders = [
   }
 }
 
+/**
+ * GitHub Pages build (scripts/build-pages.sh): plain HTML files with no server, served under
+ * https://<user>.github.io/<repo>/, so every address gets the repo name as a prefix.
+ */
+const STATIC_EXPORT = process.env.STATIC_EXPORT === "true";
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || undefined;
+
 const nextConfig: NextConfig = {
+  ...(STATIC_EXPORT ? { output: "export" as const, trailingSlash: true, basePath: BASE_PATH } : {}),
   poweredByHeader: false,
   reactStrictMode: true,
   images: {
     // Commons serves pre-sized thumbnails, so we skip the optimiser (no server-side fetching of remote URLs).
     unoptimized: true,
   },
-  async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
-  },
+  // Plain-file hosts can't send headers; on GitHub Pages the platform's own headers apply.
+  ...(STATIC_EXPORT
+    ? {}
+    : {
+        async headers() {
+          return [{ source: "/:path*", headers: securityHeaders }];
+        },
+      }),
 };
 
 export default nextConfig;

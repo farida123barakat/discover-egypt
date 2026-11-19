@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { STATIC_SITE } from "@/lib/base-path";
 import { AnimatePresence, motion } from "framer-motion";
 import { Building2, Camera, Fish, Landmark, Moon, Mountain, Palette, Umbrella, Users, UtensilsCrossed, type LucideIcon } from "lucide-react";
 import { ENVIRONMENTS, INTERESTS, type Environment, type Interest } from "@/content/destinations";
@@ -36,6 +37,13 @@ export function FindYourEgypt({ compact = false, initialInterests = [] }: { comp
   const [results, setResults] = useState<Recommendation[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
+
+  // The GitHub Pages build is rendered ahead of time, so picks from the home page (?i=…) are read here.
+  useEffect(() => {
+    if (!STATIC_SITE || initialInterests.length) return;
+    const picked = (new URLSearchParams(window.location.search).get("i") ?? "").split(",").filter((x): x is Interest => (INTERESTS as readonly string[]).includes(x));
+    if (picked.length) setInterests(picked);
+  }, [initialInterests.length]);
 
   function next() {
     if (step === 0 && interests.length === 0) {

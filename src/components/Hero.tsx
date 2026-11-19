@@ -1,4 +1,5 @@
 "use client";
+import { withBase } from "@/lib/base-path";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -101,7 +102,7 @@ export function Hero() {
           aria-labelledby="quick-h"
           onSubmit={(e) => {
             e.preventDefault();
-            window.location.assign(findHref);
+            window.location.assign(withBase(findHref));
           }}
         >
           <p id="quick-h" className="flex items-center gap-2 font-display text-2xl !text-ivory">

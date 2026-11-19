@@ -56,3 +56,6 @@ playwright-report-supabase/
 demo-output/
 supabase/.temp/
 supabase/.branches/
+pages-out/
+.pages-root/
+playwright-report-pages/

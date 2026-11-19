@@ -12,6 +12,7 @@
  * drafts: originals need an editor's fact check, embeds need someone to watch them, confirm
  * they still play, and record the duration and captions.
  */
+import { withBase } from "@/lib/base-path";
 import { explainers, timeline, type Source } from "./explainers";
 
 export type MediaChapter = { start: number; title: string };
@@ -48,11 +49,11 @@ export type MediaItem = {
 };
 
 export const MEDIA_FILES = (id: string) => ({
-  src: `/media/${id}.mp4`,
-  poster: `/media/${id}-poster.jpg`,
-  backdrop: `/media/${id}-backdrop.jpg`,
-  captions: `/media/${id}.en.vtt`,
-  chapters: `/media/${id}.chapters.vtt`,
+  src: withBase(`/media/${id}.mp4`),
+  poster: withBase(`/media/${id}-poster.jpg`),
+  backdrop: withBase(`/media/${id}-backdrop.jpg`),
+  captions: withBase(`/media/${id}.en.vtt`),
+  chapters: withBase(`/media/${id}.chapters.vtt`),
 });
 
 function fromExplainer(id: string, featured: boolean): MediaItem {

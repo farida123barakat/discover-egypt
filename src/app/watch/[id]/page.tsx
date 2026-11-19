@@ -10,6 +10,11 @@ import { MediaCard } from "@/components/media/MediaCard";
 
 export const dynamic = "force-dynamic";
 
+/** Every page this route has, for the plain-files GitHub Pages build. */
+export async function generateStaticParams() {
+  return (await getVisibleMedia()).map((m) => ({ id: m.id }));
+}
+
 async function find(id: string) {
   const list = await getVisibleMedia();
   return { m: list.find((x) => x.id === id), list };

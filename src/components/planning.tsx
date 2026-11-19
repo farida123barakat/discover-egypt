@@ -1,4 +1,6 @@
 "use client";
+import { STATIC_SITE } from "@/lib/base-path";
+import { parseRates, RATES_URL } from "@/lib/rates";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useId, useMemo, useState } from "react";
@@ -387,8 +389,8 @@ export function useRates(): Rates {
   const [r, setR] = useState<Rates>({ toEgp: null, updated: null, error: null, loading: true });
   useEffect(() => {
     let alive = true;
-    fetch("/api/rates")
-      .then((res) => res.json())
+    // The GitHub Pages build has no server, so it asks the (CORS-enabled) provider directly.
+    (STATIC_SITE ? fetch(RATES_URL).then(async (res) => parseRates(await res.json())) : fetch("/api/rates").then((res) => res.json()))
       .then((d) => {
         if (!alive) return;
         if (d.ok) setR({ toEgp: d.toEgp, updated: new Date(d.updated).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }), error: null, loading: false });

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getDestination } from "@/content/destinations";
 import { listPublished } from "@/lib/store";
 import { backendMode, contactEmail } from "@/lib/env";
@@ -51,9 +52,9 @@ export default async function CommunityPage() {
                   ["/taste", "Where and what to eat"],
                 ].map(([href, label]) => (
                   <li key={href}>
-                    <a href={href} className="card flex items-center justify-between p-4 font-semibold text-midnight hover:bg-limestone">
+                    <Link href={href} className="card flex items-center justify-between p-4 font-semibold text-midnight hover:bg-limestone">
                       {label} <span aria-hidden="true">→</span>
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>

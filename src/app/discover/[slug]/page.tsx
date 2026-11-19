@@ -10,6 +10,11 @@ import { Photo, Reveal } from "@/components/ui";
 import { MiniMap } from "@/components/MiniMap";
 
 export const dynamic = "force-dynamic";
+
+/** Every page this route has, for the plain-files GitHub Pages build. */
+export function generateStaticParams() {
+  return destinations.map((d) => ({ slug: d.slug }));
+}
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

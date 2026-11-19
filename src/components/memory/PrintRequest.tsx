@@ -1,4 +1,5 @@
 "use client";
+import { STATIC_SITE } from "@/lib/base-path";
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Clock, MapPin, Printer, ShieldCheck, X } from "lucide-react";
@@ -14,6 +15,10 @@ export function usePrintPartners() {
   const [partners, setPartners] = useState<PublicPartner[] | null>(null);
   useEffect(() => {
     let alive = true;
+    if (STATIC_SITE) {
+      setPartners([]); // the GitHub Pages build has no print service
+      return;
+    }
     fetch("/api/print/partners")
       .then(async (r) => {
         const body = (await r.json().catch(() => null)) as { partners?: PublicPartner[] } | null; // always drain the body
