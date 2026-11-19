@@ -151,7 +151,3 @@ export async function processPhoto(file: File, maxEdge = PHOTO_MAX_EDGE): Promis
   if (!blob) throw new PhotoError("We couldn't process that photo. Please try another one.");
   return blob;
 }
-
-export function blobUrl(b: Blob | null) {
-  return b ? URL.createObjectURL(b) : null;
-}

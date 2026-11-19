@@ -444,7 +444,3 @@ export const explainers: Explainer[] = [
     ],
   },
 ];
-
-export function explainerById(id: string) {
-  return explainers.find((e) => e.id === id);
-}

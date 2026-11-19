@@ -3,7 +3,7 @@ import { STATIC_SITE } from "@/lib/base-path";
 import { parseRates, RATES_URL } from "@/lib/rates";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { destinations, getDestination } from "@/content/destinations";
 import { BUDGET_META, CATEGORIES, PRESETS, STYLES, dailyTotal, tripTotal, type DailyBudget, type Style } from "@/lib/budget";
 import { saveItinerary, setPacking, useMyEgypt, type PackingItem } from "@/lib/client-store";
@@ -516,12 +516,4 @@ export function PackingList() {
       </form>
     </div>
   );
-}
-
-export function useTripSummary(it: Itinerary | null) {
-  return useMemo(() => {
-    if (!it) return null;
-    const places = [...new Set(it.days.map((d) => d.destination).filter(Boolean))] as string[];
-    return { places: places.map((p) => getDestination(p)?.name ?? p), activities: it.days.reduce((s, d) => s + d.activities.length, 0) };
-  }, [it]);
 }

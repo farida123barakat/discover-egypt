@@ -247,7 +247,6 @@ export const recipes: Recipe[] = [
 export const ALLERGEN_LABEL: Record<Allergen, string> = { gluten: "Gluten (wheat)", milk: "Milk", egg: "Egg", fish: "Fish", sesame: "Sesame", nuts: "Nuts", celery: "Celery" };
 
 export const regionById = (id: string) => regions.find((r) => r.id === id);
-export const recipeBySlug = (slug: string) => recipes.find((r) => r.slug === slug);
 export const regionOfDestination = (slug: string) => regions.find((r) => r.destinations.includes(slug));
 
 /** Scale a quantity and format it nicely (¼, ½, ¾ for spoons; whole numbers for grams). */

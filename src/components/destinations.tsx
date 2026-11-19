@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { Destination } from "@/content/destinations";
-import { photos } from "@/content/images";
 import { collectStamp, toggleAttraction, toggleFavourite, useMyEgypt } from "@/lib/client-store";
 import { Photo } from "./ui";
 
@@ -90,5 +89,3 @@ export function AttractionList({ d }: { d: Destination }) {
     </ul>
   );
 }
-
-export const photoCredit = (k: Destination["photo"]) => (k ? photos[k] : null);

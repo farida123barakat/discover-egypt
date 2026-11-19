@@ -130,9 +130,3 @@ export function setPacking(items: PackingItem[]) {
 export function clearAll() {
   update(() => empty());
 }
-
-/** Test helper */
-export function _resetClientStore() {
-  cache = null;
-  listeners.clear();
-}
