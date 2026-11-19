@@ -6,6 +6,9 @@ import { PhotoHero } from "@/components/design";
 
 export const metadata: Metadata = { title: "Your account", robots: { index: false, follow: false } };
 
+// Reads ?error=… messages per request (the GitHub Pages build renders it once, with none).
+export const dynamic = "force-dynamic";
+
 type Search = { error?: string; welcome?: string; "signed-out"?: string; password?: string };
 
 export default async function AccountPage({ searchParams }: { searchParams: Promise<Search> }) {
