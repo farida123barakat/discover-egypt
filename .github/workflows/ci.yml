@@ -35,7 +35,7 @@ jobs:
       - run: npm ci
       - run: npm run check
       - name: Keep the build for the browser tests
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: next-build
           path: |
@@ -67,7 +67,7 @@ jobs:
         env:
           CI: "true"
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: playwright-report
@@ -142,7 +142,7 @@ jobs:
         env:
           CI: "true"
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report-supabase
           path: playwright-report-supabase
@@ -152,7 +152,7 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
           ffmpeg -loglevel error -y -i demo-output/discover-egypt-demo.webm -c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p -movflags +faststart demo-output/discover-egypt-demo.mp4
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always() && hashFiles('demo-output/*.png') != ''
         with:
           name: demo
