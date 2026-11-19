@@ -1,3 +1,4 @@
+import { backendMode } from "@/lib/env";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
@@ -35,10 +36,14 @@ export default async function BucketListPage() {
         <p className="mb-12 flex flex-wrap items-center gap-2 rounded-2xl bg-limestone p-4 text-sm text-muted">
           <ShieldCheck aria-hidden="true" size={16} className="text-ok" />
           Your progress is saved on this device.
-          <Link href="/account" className="font-semibold text-nile underline underline-offset-4">
-            Sign in to keep it in your account
-          </Link>
-          (optional).
+          {backendMode() === "supabase" && (
+            <>
+              <Link href="/account" className="font-semibold text-nile underline underline-offset-4">
+                Sign in to keep it in your account
+              </Link>
+              (optional).
+            </>
+          )}
         </p>
         {activities.length ? <BucketList activities={activities} /> : <p className="rounded-2xl bg-limestone p-10 text-center text-muted">New experiences are being added. Check back soon.</p>}
       </div>

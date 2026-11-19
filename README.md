@@ -2,7 +2,9 @@
 
 **A thousand stories. One destination.**
 
-A full-stack tourism platform concept for Egypt. It helps visitors **get inspired**, **plan a trip** and **travel well** once they arrive.
+A tourism platform concept for Egypt. It helps visitors **get inspired**, **plan a trip** and **travel well** once they arrive.
+
+**Front-end only by default:** no database and no accounts. Everything a visitor saves stays in their own browser, forms open the visitor's email app, and it deploys for free with no settings ([how](docs/DEPLOYMENT.md#front-end-only-the-default)). A Supabase database can be added later for accounts and the admin dashboard; that code is included and tested, but optional.
 
 > **Status:** concept and student project. It is **not** an official Ministry of Tourism and Antiquities website and is **not deployed**. Official facts are shown with a "last verified" date and a source, or are labelled *awaiting verification*.
 
@@ -39,9 +41,10 @@ npm run dev                     # open http://localhost:3000
 | **Egypt Memory Hunt** | 20 challenges (landmarks, hieroglyphs, food, markets, sunsets, hidden details) filtered by place and who you travel with; save a memory with a photo, caption and story (stored privately on the device, GPS removed); points and achievements; every memory becomes a print-ready A6 postcard (5 designs, optional Arabic calligraphy); a **Memory Passport** booklet that prints like a passport (stamps, photo pages, gold-seal achievements) as an A4 fold-and-staple PDF or print-shop pages; postcard album PDF; optional cloud backup; collect a print at a verified partner with a collection code and QR code |
 | **Travel Smart** | Emergency numbers, Cairo Metro and women-only carriages, walking routes on a map, accessibility (no unverified claims), fair price guide |
 | **My Egypt** | Saved places, Egypt Travel Passport stamps, itinerary, PDF download and print, packing list |
-| **Accounts** (optional) | Create an account with email confirmation, sign in with a password or an emailed link, reset a forgotten password, sign out; sync trips and bucket-list progress, back up memories. Supabase Auth, tested against a real Supabase in CI |
+| **Without a database** | Forms (contact, ask a local, share a story) check what's typed, then open the visitor's email app with the message ready; album backup to a file and restore on another device; account, admin and newsletter links hidden |
+| **Accounts** (optional, needs Supabase) | Create an account with email confirmation, sign in with a password or an emailed link, reset a forgotten password, sign out; sync trips and bucket-list progress, back up memories. Supabase Auth, tested against a real Supabase in CI |
 | **Watch & Discover** | Three original animated explainers (Great Pyramid, Nile seasons, moving Abu Simbel) with captions on by default, chapters, a follow-along transcript and sources; click-to-load YouTube embeds from creators' own channels; films on each destination page |
-| **Admin** | Moderation queue (answer and publish), price editor, event manager, featured destinations, photo upload, recipe review, bucket-list and video managers, printing partners and the postcard print queue |
+| **Admin** (needs Supabase, or local demo mode) | Moderation queue (answer and publish), price editor, event manager, featured destinations, photo upload, recipe review, bucket-list and video managers, printing partners and the postcard print queue |
 
 Full status: **[FEATURES.md](FEATURES.md)**.
 

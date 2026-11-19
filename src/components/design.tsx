@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
 import { ArrowRight, MapPin } from "lucide-react";
 import { photo as getPhoto, type PhotoKey } from "@/content/images";
+import { Photo } from "./ui";
 
 /** Original mark: the sun on the horizon above the Nile. */
 export function Logo({ tone = "dark" }: { tone?: "dark" | "light" }) {
@@ -116,5 +117,65 @@ export function Credit({ k, className = "" }: { k: PhotoKey; className?: string 
       Photo: {p.author} · {p.license}
       <span className="sr-only"> (opens Wikimedia Commons in a new tab)</span>
     </a>
+  );
+}
+
+/**
+ * Photo header for a page: the photo darkened behind ivory text, the same pattern as Discover.
+ * The scrim keeps text contrast above 4.5:1 whatever the photo.
+ */
+export function PhotoHero({
+  k,
+  eyebrow,
+  title,
+  intro,
+  children,
+}: {
+  k: PhotoKey;
+  eyebrow: string;
+  title: ReactNode;
+  intro?: ReactNode;
+  children?: ReactNode;
+}) {
+  return (
+    <section className="on-dark relative isolate overflow-hidden bg-midnight pb-16 pt-36 text-ivory md:pb-20 md:pt-40">
+      <Photo k={k} priority sizes="100vw" className="absolute inset-0 -z-10 h-full w-full opacity-55" />
+      <div className="photo-scrim absolute inset-0 -z-10 bg-gradient-to-t from-midnight via-midnight/70 to-midnight/25" />
+      <div className="mx-auto max-w-7xl px-5 md:px-8">
+        <p className="eyebrow">{eyebrow}</p>
+        <h1 className="mt-4 max-w-4xl text-5xl !text-ivory md:text-7xl">{title}</h1>
+        {intro && <p className="mt-5 max-w-2xl text-lg text-ivory/85">{intro}</p>}
+        {children}
+      </div>
+      <Credit k={k} className="absolute bottom-3 right-4" />
+    </section>
+  );
+}
+
+/** A strip of captioned photos between sections. Captions come from each photo's alt text. */
+export function PhotoStrip({ keys, className = "" }: { keys: PhotoKey[]; className?: string }) {
+  return (
+    <ul className={`grid gap-4 sm:grid-cols-2 ${keys.length > 2 ? "lg:grid-cols-3" : ""} ${className}`}>
+      {keys.map((k) => {
+        const p = getPhoto(k);
+        if (!p) return null;
+        return (
+          <li key={k}>
+            <figure>
+              <div className="relative aspect-[4/3] overflow-hidden rounded-[1.25rem] bg-sand">
+                <Photo k={k} sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" className="absolute inset-0 h-full w-full" />
+              </div>
+              <figcaption className="mt-2 text-sm text-muted">
+                {p.alt}.{" "}
+                <a href={p.sourcePage} target="_blank" rel="noopener noreferrer" className="whitespace-nowrap text-xs underline-offset-2 hover:underline">
+                  Photo: {p.author} · {p.license}
+                  <span className="sr-only"> (opens Wikimedia Commons in a new tab)</span>
+                </a>
+              </figcaption>
+            </figure>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

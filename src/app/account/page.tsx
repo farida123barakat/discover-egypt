@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { backendMode } from "@/lib/env";
 import { AccountPanel } from "@/components/AccountPanel";
+import { PhotoHero } from "@/components/design";
 
 export const metadata: Metadata = { title: "Your account", robots: { index: false, follow: false } };
 
@@ -12,12 +13,18 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   const { error } = q;
   const accounts = backendMode() === "supabase";
   return (
-    <div className="mx-auto max-w-3xl px-5 pb-24 pt-36 md:px-8">
-      <p className="eyebrow">My Egypt</p>
-      <h1 className="mt-3 text-5xl">Your account</h1>
-      <p className="mt-4 text-lg text-muted">
-        You never need an account. Favourites, stamps, packing lists and your trip are saved in this browser. Sign in only if you want to keep trips on more than one device.
-      </p>
+    <>
+    <PhotoHero
+      k="redSeaBeach"
+      eyebrow="My Egypt"
+      title="Your account"
+      intro={
+        accounts
+          ? "You never need an account. Favourites, stamps, packing lists and your trip are saved in this browser. Sign in only if you want to keep trips on more than one device."
+          : "You never need an account. Favourites, stamps, packing lists and your trip are saved in this browser."
+      }
+    />
+    <div className="mx-auto max-w-3xl px-5 pb-24 pt-4 md:px-8">
       {error === "link" && (
         <p role="alert" className="mt-6 rounded-xl bg-alert/10 p-4 font-medium text-alert">
           That link has expired, was already used, or was opened in a different browser from the one you asked in. Request a new one below.
@@ -47,11 +54,17 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         <AccountPanel />
       ) : (
         <div className="card mt-10 p-7">
-          <h2 className="text-2xl">Accounts are switched off on this server</h2>
-          <p className="mt-2 text-muted">Cloud accounts need a Supabase project. Everything else works, and your plans stay on this device.</p>
-          <Link href="/my-egypt" className="btn btn-primary mt-6">Open My Egypt</Link>
+          <h2 className="text-2xl">No sign-in needed</h2>
+          <p className="mt-2 text-muted">
+            This site runs in your browser, without accounts or a database. Your trips, bucket list and Memory Hunt album are saved on this device, and you can download your album as a backup file from the album page.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/my-egypt" className="btn btn-primary">Open My Egypt</Link>
+            <Link href="/memory-hunt/album" className="btn btn-outline">Back up my album</Link>
+          </div>
         </div>
       )}
     </div>
+    </>
   );
 }

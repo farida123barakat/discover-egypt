@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { destinations, INTERESTS, type Interest } from "@/content/destinations";
 import { ramadanGuide } from "@/content/practical";
+import type { PhotoKey } from "@/content/images";
 import { getEvents } from "@/lib/store";
 import { DestinationExplorer } from "@/components/DestinationExplorer";
 import { FindYourEgypt } from "@/components/FindYourEgypt";
@@ -13,6 +14,15 @@ import { Photo, Reveal, SectionHeading, StatusBadge } from "@/components/ui";
 export const metadata: Metadata = { title: "Discover", description: "Find the parts of Egypt that match you, explore an interactive map and walk through 5,000 years of history." };
 
 export const dynamic = "force-dynamic";
+
+/** Photos for the built-in events. Events added in the admin show without one. */
+const EVENT_PHOTO: Record<string, PhotoKey> = {
+  "coptic-christmas": "copticMuseum",
+  "sun-feb": "abuSimbelSanctuary",
+  "sun-oct": "abuSimbelSanctuary",
+  ramadan: "lanterns",
+  sham: "cairoTower",
+};
 
 export default async function DiscoverPage({ searchParams }: { searchParams: Promise<{ i?: string }> }) {
   const events = await getEvents();
@@ -109,13 +119,20 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
         <SectionHeading id="cal-h" eyebrow="Events calendar" title="Festivals & holy days." intro="Dates marked 'awaiting verification' depend on official announcements or the lunar calendar." />
         <ul className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {events.map((e) => (
-            <li key={e.id} className="card p-6">
+            <li key={e.id} className="card overflow-hidden">
+              {EVENT_PHOTO[e.id] && (
+                <div className="relative aspect-[16/9] overflow-hidden" aria-hidden="true">
+                  <Photo k={EVENT_PHOTO[e.id]} sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw" className="absolute inset-0 h-full w-full" />
+                </div>
+              )}
+              <div className="p-6">
               <p className="font-display text-lg text-gold-ink">{e.when}</p>
               <h3 className="mt-2 text-2xl">{e.name}</h3>
               <p className="mt-1 text-sm font-medium">{e.where}</p>
               <p className="mt-2 text-muted">{e.description}</p>
               <div className="mt-4">
                 <StatusBadge status={e.status} lastVerified={e.lastVerified} />
+              </div>
               </div>
             </li>
           ))}

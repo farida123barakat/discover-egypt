@@ -45,7 +45,7 @@ export const dishes: Dish[] = [
     name: "Taameya",
     arabic: "طعمية",
     kind: "street",
-    photo: null,
+    photo: "taameya",
     description: "Egyptian falafel, made with fava beans instead of chickpeas, so it is green and fluffy inside.",
     ingredients: ["Fava beans", "Parsley", "Dill", "Coriander", "Onion", "Sesame"],
     priceRange: [10, 40],
@@ -69,7 +69,7 @@ export const dishes: Dish[] = [
     name: "Mahshi",
     arabic: "محشي",
     kind: "main",
-    photo: null,
+    photo: "mahshi",
     description: "Vegetables and vine leaves stuffed with herbed rice and simmered in tomato broth.",
     ingredients: ["Vine leaves", "Courgette", "Peppers", "Aubergine", "Rice", "Dill", "Tomato"],
     priceRange: [80, 250],
@@ -93,7 +93,7 @@ export const dishes: Dish[] = [
     name: "Hawawshi",
     arabic: "حواوشي",
     kind: "street",
-    photo: null,
+    photo: "hawawshi",
     description: "Baladi bread stuffed with spiced minced meat, onions and peppers, then baked until crisp.",
     ingredients: ["Minced beef", "Onion", "Chilli", "Baladi bread"],
     priceRange: [50, 150],
@@ -148,11 +148,14 @@ export type Era = {
   summary: string;
   childVersion: string;
   places: string[]; // destination slugs
+  /** a photo from the period itself; falls back to the first place's photo */
+  photo?: PhotoKey;
 };
 
 export const eras: Era[] = [
   {
     id: "predynastic",
+    photo: "narmer",
     name: "Before the pharaohs",
     dates: "c. 6000–3100 BCE",
     summary: "Farming villages grew along the Nile. Kingdoms in the north and south formed and were finally united.",
@@ -169,6 +172,7 @@ export const eras: Era[] = [
   },
   {
     id: "middle-new-kingdom",
+    photo: "hatshepsut",
     name: "Middle & New Kingdoms",
     dates: "c. 2055–1069 BCE",
     summary: "Thebes (Luxor) became the religious capital. Hatshepsut, Tutankhamun and Ramesses II ruled in this period.",
@@ -177,6 +181,7 @@ export const eras: Era[] = [
   },
   {
     id: "greco-roman",
+    photo: "komOmbo",
     name: "Greek & Roman Egypt",
     dates: "332 BCE–641 CE",
     summary: "Alexander the Great founded Alexandria. The Ptolemies, including Cleopatra VII, ruled, followed by Rome.",
@@ -185,6 +190,7 @@ export const eras: Era[] = [
   },
   {
     id: "coptic",
+    photo: "copticMuseum",
     name: "Coptic Christian Egypt",
     dates: "1st–7th century CE",
     summary: "Christianity spread early in Egypt. The monastic tradition began in its deserts.",
@@ -193,6 +199,7 @@ export const eras: Era[] = [
   },
   {
     id: "islamic",
+    photo: "mashrabiya",
     name: "Islamic Cairo",
     dates: "641–1517 CE",
     summary: "Fustat and then Cairo grew under the Fatimids, Ayyubids and Mamluks, who built Al-Azhar and the Citadel.",
@@ -201,6 +208,7 @@ export const eras: Era[] = [
   },
   {
     id: "modern",
+    photo: "cairoTower",
     name: "Modern Egypt",
     dates: "1805–today",
     summary: "From Muhammad Ali's reforms and the Suez Canal to today's Grand Egyptian Museum and new cities.",
@@ -257,8 +265,8 @@ export const etiquette = [
 
 /* ---------------- Senses ---------------- */
 export const soundscapes = [
-  { id: "nile", title: "Sounds of the Nile", description: "Water against a felucca hull, wind in the sail.", mood: "river" },
-  { id: "desert", title: "Desert night", description: "Wind across sand and a slow, low drone.", mood: "desert" },
-  { id: "market", title: "Traditional market", description: "A rhythmic tabla-style pulse under bustle.", mood: "market" },
-  { id: "coast", title: "Red Sea coast", description: "Waves rolling gently onto a reef beach.", mood: "coast" },
+  { id: "nile", title: "Sounds of the Nile", description: "Water against a felucca hull, wind in the sail.", mood: "river", photo: "felucca" },
+  { id: "desert", title: "Desert night", description: "Wind across sand and a slow, low drone.", mood: "desert", photo: "desertStars" },
+  { id: "market", title: "Traditional market", description: "A rhythmic tabla-style pulse under bustle.", mood: "market", photo: "spiceMarket" },
+  { id: "coast", title: "Red Sea coast", description: "Waves rolling gently onto a reef beach.", mood: "coast", photo: "redSeaBeach" },
 ] as const;

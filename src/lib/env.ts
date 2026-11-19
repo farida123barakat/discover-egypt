@@ -1,3 +1,5 @@
+import { isEmail } from "./mailto";
+
 /** Central place for configuration checks. Never import service-role values into client code. */
 export const publicEnv = {
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
@@ -19,6 +21,15 @@ export function localModeEnabled() {
   if (supabaseConfigured()) return false;
   if (process.env.VERCEL_ENV === "production") return false;
   return process.env.DEMO_LOCAL_MODE === "true";
+}
+
+/**
+ * Where front-end-only forms send their prepared emails (CONTACT_EMAIL, e.g. hello@your-domain).
+ * Read on the server at request time, so it can change without a rebuild.
+ */
+export function contactEmail(): string | null {
+  const v = (process.env.CONTACT_EMAIL ?? "").trim();
+  return isEmail(v) ? v : null;
 }
 
 export function backendMode(): "supabase" | "local" | "none" {

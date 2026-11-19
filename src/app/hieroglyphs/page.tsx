@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "@fontsource/noto-sans-egyptian-hieroglyphs/egyptian-hieroglyphs-400.css";
 import { ArrowDown, BookOpen, Brush, Feather, ScanSearch } from "lucide-react";
 import { GROUPS, signs, SIGN_SOURCES } from "@/content/hieroglyphs";
-import { SectionHeader } from "@/components/design";
+import { PhotoStrip, SectionHeader } from "@/components/design";
 import { Photo, Reveal } from "@/components/ui";
 import { Glyph } from "@/components/hieroglyphs/SignDetail";
 import { Scanner } from "@/components/hieroglyphs/Scanner";
@@ -109,6 +109,16 @@ export default function HieroglyphsPage() {
             </div>
           </div>
         </div>
+      </section>
+
+      <section id="in-stone" className="mx-auto max-w-7xl scroll-mt-24 px-5 py-20 md:px-8 md:py-28" aria-labelledby="stone-h">
+        <SectionHeader
+          id="stone-h"
+          eyebrow="Out in the world"
+          title="Where you’ll see them."
+          intro="Temple walls, ceilings, statues and papyrus. Look for a cartouche first — the oval ring around a royal name — then spot the signs you’ve learned inside it."
+        />
+        <PhotoStrip keys={["templeRelief", "cartouche", "rosetta", "seatedScribe", "bookOfTheDead", "denderaCeiling"]} className="mt-12" />
       </section>
 
       <section id="practice" className="mx-auto max-w-7xl scroll-mt-24 px-5 py-20 md:px-8 md:py-28" aria-labelledby="practice-h">

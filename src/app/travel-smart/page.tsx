@@ -5,6 +5,7 @@ import { walks } from "@/content/walks";
 import { getPrices } from "@/lib/store";
 import { RouteMap } from "@/components/MiniMap";
 import { Photo, SectionHeading, StatusBadge } from "@/components/ui";
+import { PhotoHero, PhotoStrip } from "@/components/design";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Travel Smart", description: "Emergency numbers, Cairo Metro fares, walking routes, safety, accessibility and fair prices in Egypt." };
@@ -13,11 +14,7 @@ export default async function TravelSmartPage() {
   const prices = await getPrices();
   return (
     <>
-      <section className="bg-limestone pb-16 pt-36">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <p className="eyebrow">Travel smart</p>
-          <h1 className="mt-4 max-w-4xl text-5xl md:text-7xl">Practical, checked, honest.</h1>
-          <p className="mt-5 max-w-2xl text-lg text-muted">Every number on this page shows when it was last checked and where it came from. Anything we could not verify is clearly marked.</p>
+      <PhotoHero k="cairoTower" eyebrow="Travel smart" title="Practical, checked, honest." intro="Every number on this page shows when it was last checked and where it came from. Anything we could not verify is clearly marked.">
           <nav aria-label="On this page" className="mt-8 flex flex-wrap gap-2 text-sm">
             {[
               ["#safety", "Emergency & safety"],
@@ -26,13 +23,12 @@ export default async function TravelSmartPage() {
               ["#prices", "Fair price guide"],
               ["#accessibility", "Accessibility"],
             ].map(([h, l]) => (
-              <a key={h} href={h} className="chip bg-ivory">
+              <a key={h} href={h} className="rounded-full border border-ivory/30 px-4 py-2 hover:bg-ivory/10">
                 {l}
               </a>
             ))}
           </nav>
-        </div>
-      </section>
+      </PhotoHero>
 
       <section id="safety" className="mx-auto max-w-7xl scroll-mt-24 px-5 py-20 md:px-8" aria-labelledby="safety-h">
         <SectionHeading id="safety-h" eyebrow="Traveller safety" title="Save these numbers." />
@@ -106,6 +102,7 @@ export default async function TravelSmartPage() {
             <div className="mt-4">
               <StatusBadge status={metroGuide.status} lastVerified={metroGuide.lastVerified} source={metroGuide.source} />
             </div>
+            <PhotoStrip keys={["metro", "train"]} className="mt-10" />
           </div>
           <div className="space-y-6">
             <div className="card p-6">

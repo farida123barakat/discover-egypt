@@ -36,9 +36,11 @@ const cols = [
   },
 ];
 
-export function SiteFooter() {
+export function SiteFooter({ offline = false }: { offline?: boolean }) {
   return (
     <footer className="on-dark bg-midnight text-ivory/85">
+      {/* The monthly email needs a mailing list, so it only appears when a database is connected. */}
+      {!offline && (
       <section aria-labelledby="inspired-h" className="border-b border-ivory/10 bg-night">
         <div className="mx-auto grid max-w-7xl gap-8 px-5 py-12 md:grid-cols-[1fr_1.2fr] md:items-center md:px-8">
           <div className="flex items-start gap-4">
@@ -53,6 +55,7 @@ export function SiteFooter() {
           <NewsletterForm />
         </div>
       </section>
+      )}
       <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 md:grid-cols-12 md:px-8">
         <div className="md:col-span-5">
           <Logo tone="light" />

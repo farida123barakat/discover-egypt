@@ -97,15 +97,15 @@ export const regionalDishes: RegionalDish[] = [
   // ---- National classics (shown everywhere, strongest in Cairo) ----
   { slug: "koshari", name: "Koshari", arabic: "كشري", regions: ["cairo"], what: "Rice, lentils and pasta under tomato sauce, garlic vinegar and crispy onions.", association: NATION("A national street food, served in dedicated koshari restaurants across Egypt."), recipe: "koshari", photo: "koshari", vegetarian: "yes" },
   { slug: "ful-medames", name: "Ful medames", arabic: "فول مدمس", regions: ["cairo"], what: "Slow-cooked fava beans with oil, cumin and lemon — the national breakfast.", association: NATION(), recipe: "ful-medames", photo: "ful", vegetarian: "yes" },
-  { slug: "taameya", name: "Taameya", arabic: "طعمية", regions: ["cairo"], what: "Egypt's falafel, made from fava beans and plenty of green herbs.", association: NATION(), recipe: "taameya", vegetarian: "yes" },
-  { slug: "hawawshi", name: "Hawawshi", arabic: "حواوشي", regions: ["cairo"], what: "Spiced minced meat baked inside bread until crisp.", association: NATION("A street food found in cities across Egypt."), recipe: "hawawshi", vegetarian: "no" },
+  { slug: "taameya", photo: "taameya", name: "Taameya", arabic: "طعمية", regions: ["cairo"], what: "Egypt's falafel, made from fava beans and plenty of green herbs.", association: NATION(), recipe: "taameya", vegetarian: "yes" },
+  { slug: "hawawshi", photo: "hawawshi", name: "Hawawshi", arabic: "حواوشي", regions: ["cairo"], what: "Spiced minced meat baked inside bread until crisp.", association: NATION("A street food found in cities across Egypt."), recipe: "hawawshi", vegetarian: "no" },
   { slug: "molokhia", name: "Molokhia", arabic: "ملوخية", regions: ["cairo", "upper-egypt"], what: "A silky green soup of jute leaves with garlic and coriander.", association: NATION("Cooked in homes across Egypt."), recipe: "molokhia", photo: "molokhia", vegetarian: "often" },
   { slug: "basbousa", name: "Basbousa", arabic: "بسبوسة", regions: ["cairo"], what: "Semolina cake soaked in syrup.", association: NATION("Sold in sweet shops across Egypt."), recipe: "basbousa", photo: "basbousa", vegetarian: "yes" },
   { slug: "karkade", name: "Karkade", arabic: "كركديه", regions: ["cairo", "nubia", "upper-egypt"], what: "Deep-red hibiscus tea, iced in summer and hot in winter.", association: NATION("Drunk across Egypt; hibiscus is widely sold in Aswan's markets."), recipe: "karkade", photo: "karkade", vegetarian: "yes" },
 
   // ---- Alexandria ----
-  { slug: "sayadeya", name: "Sayadeya", arabic: "صيادية", regions: ["alexandria", "sinai-red-sea"], what: "White fish over rice browned with deeply caramelised onions.", association: { status: "sourced", note: "Described as a signature Alexandrian dish; also served along the Red Sea coast.", sources: [S.sandy, S.sunheron, S.secretSharm] }, recipe: "sayadeya", vegetarian: "no" },
-  { slug: "kebda-eskandarani", name: "Kebda eskandarani", arabic: "كبدة إسكندراني", regions: ["alexandria"], what: "Thin-sliced liver flash-fried with garlic, cumin and green chilli — the name means “Alexandrian liver”.", association: { status: "sourced", note: "A street food so tied to Alexandria that it carries the city's name.", sources: [S.sandy, S.scoop] }, recipe: "kebda-eskandarani", vegetarian: "no" },
+  { slug: "sayadeya", photo: "sayadeya", name: "Sayadeya", arabic: "صيادية", regions: ["alexandria", "sinai-red-sea"], what: "White fish over rice browned with deeply caramelised onions.", association: { status: "sourced", note: "Described as a signature Alexandrian dish; also served along the Red Sea coast.", sources: [S.sandy, S.sunheron, S.secretSharm] }, recipe: "sayadeya", vegetarian: "no" },
+  { slug: "kebda-eskandarani", photo: "kebda", name: "Kebda eskandarani", arabic: "كبدة إسكندراني", regions: ["alexandria"], what: "Thin-sliced liver flash-fried with garlic, cumin and green chilli — the name means “Alexandrian liver”.", association: { status: "sourced", note: "A street food so tied to Alexandria that it carries the city's name.", sources: [S.sandy, S.scoop] }, recipe: "kebda-eskandarani", vegetarian: "no" },
 
   // ---- Upper Egypt ----
   { slug: "eish-shamsi", name: "Eish shamsi (sun bread)", arabic: "عيش شمسي", regions: ["upper-egypt", "nubia"], what: "A sourdough bread left to rise in the sun.", association: { status: "sourced", note: "Described as a bread popular in Upper Egypt, served at a Nubian home dinner in Aswan.", sources: [S.travelweekly] }, vegetarian: "yes" },
@@ -116,10 +116,10 @@ export const regionalDishes: RegionalDish[] = [
 
   // ---- Sinai & Red Sea ----
   { slug: "zarb", name: "Zarb", arabic: "زرب", regions: ["sinai-red-sea"], what: "Meat and vegetables slow-cooked for hours in a sealed pot buried in hot coals and sand.", association: { status: "sourced", note: "A signature Bedouin dish of Sinai, often served at desert dinners.", sources: [S.hidmcSinai, S.secretSharm] }, vegetarian: "no" },
-  { slug: "bedouin-bread", name: "Bedouin flatbread", arabic: "عيش بدوي", regions: ["sinai-red-sea"], what: "Flour, water and salt, cooked on a domed plate or under the embers of a fire.", association: { status: "sourced", note: "Bread baked over fire is central to Bedouin meals in Sinai.", sources: [S.hidmcSinai, S.lightfoot, S.worldfoodist] }, recipe: "bedouin-flatbread", vegetarian: "yes" },
+  { slug: "bedouin-bread", photo: "bedouinBread", name: "Bedouin flatbread", arabic: "عيش بدوي", regions: ["sinai-red-sea"], what: "Flour, water and salt, cooked on a domed plate or under the embers of a fire.", association: { status: "sourced", note: "Bread baked over fire is central to Bedouin meals in Sinai.", sources: [S.hidmcSinai, S.lightfoot, S.worldfoodist] }, recipe: "bedouin-flatbread", vegetarian: "yes" },
 
   // ---- Siwa & Western Desert ----
-  { slug: "siwa-dates", name: "Siwan dates & olive oil", arabic: "تمر وزيت زيتون سيوة", regions: ["western-desert"], what: "Many varieties of dates and rich local olive oil from the oasis gardens.", association: { status: "sourced", note: "Dates are a staple of traditional Siwan food; Siwa's olive oil is widely praised.", sources: [S.egypttoday, S.fodorsSiwa, S.atlas] }, photo: "siwa", vegetarian: "yes" },
+  { slug: "siwa-dates", name: "Siwan dates & olive oil", arabic: "تمر وزيت زيتون سيوة", regions: ["western-desert"], what: "Many varieties of dates and rich local olive oil from the oasis gardens.", association: { status: "sourced", note: "Dates are a staple of traditional Siwan food; Siwa's olive oil is widely praised.", sources: [S.egypttoday, S.fodorsSiwa, S.atlas] }, photo: "siwaPalms", vegetarian: "yes" },
   { slug: "aqrit", name: "Aqrit", arabic: "عقريت", regions: ["western-desert"], what: "Salted, dried cubes of meat — a way to keep meat in the desert heat.", association: { status: "sourced", note: "Listed as typical of Siwa in Slow Food's Ark of Taste, as reported by Rawi.", sources: [S.rawi] }, vegetarian: "no" },
 ];
 
@@ -157,7 +157,7 @@ export const recipes: Recipe[] = [
     provenance: AI(), review: DRAFT,
   },
   {
-    slug: "taameya", name: "Taameya", arabic: "طعمية", regions: ["cairo"],
+    slug: "taameya", name: "Taameya", arabic: "طعمية", regions: ["cairo"], photo: "taameya",
     summary: "Green, herby fava-bean fritters with a sesame crust.",
     background: "Egypt's version of falafel is made with fava beans rather than chickpeas, and lots of fresh herbs that turn the inside bright green.",
     serves: 4, servesLabel: "about 20 fritters", prepMin: 25, cookMin: 15, waitMin: 720, difficulty: "medium", diet: "vegan", allergens: ["sesame"],
@@ -177,7 +177,7 @@ export const recipes: Recipe[] = [
     provenance: AI(), review: DRAFT,
   },
   {
-    slug: "hawawshi", name: "Hawawshi", arabic: "حواوشي", regions: ["cairo"],
+    slug: "hawawshi", name: "Hawawshi", arabic: "حواوشي", regions: ["cairo"], photo: "hawawshi",
     summary: "Spiced minced meat baked inside bread until the edges crackle.",
     background: "Hawawshi is a popular street food: a thin layer of seasoned meat sealed inside bread and baked until crisp.",
     serves: 4, prepMin: 15, cookMin: 20, difficulty: "easy", diet: "meat", allergens: ["gluten"],
@@ -210,7 +210,7 @@ export const recipes: Recipe[] = [
     provenance: AI(), review: DRAFT,
   },
   {
-    slug: "sayadeya", name: "Sayadeya", arabic: "صيادية", regions: ["alexandria", "sinai-red-sea"],
+    slug: "sayadeya", name: "Sayadeya", arabic: "صيادية", regions: ["alexandria", "sinai-red-sea"], photo: "sayadeya",
     summary: "Fish over rice cooked brown with deeply caramelised onions.",
     background: "A signature dish of Alexandria's fish restaurants: the onions are cooked until very dark, which colours and flavours the rice.",
     serves: 4, prepMin: 20, cookMin: 60, difficulty: "involved", diet: "fish", allergens: ["fish"],
@@ -223,7 +223,7 @@ export const recipes: Recipe[] = [
     provenance: AI([S.sunheron]), review: DRAFT,
   },
   {
-    slug: "kebda-eskandarani", name: "Kebda eskandarani", arabic: "كبدة إسكندراني", regions: ["alexandria"],
+    slug: "kebda-eskandarani", name: "Kebda eskandarani", arabic: "كبدة إسكندراني", regions: ["alexandria"], photo: "kebda",
     summary: "Fast-fried liver with garlic, cumin, green chilli and lemon.",
     background: "Alexandria's famous street sandwich, cooked in seconds in a very hot pan.",
     serves: 4, prepMin: 25, cookMin: 6, difficulty: "easy", diet: "meat", allergens: ["gluten"],
@@ -233,7 +233,7 @@ export const recipes: Recipe[] = [
     provenance: AI([S.sunheron]), review: DRAFT,
   },
   {
-    slug: "bedouin-flatbread", name: "Bedouin flatbread", arabic: "عيش بدوي", regions: ["sinai-red-sea"],
+    slug: "bedouin-flatbread", name: "Bedouin flatbread", arabic: "عيش بدوي", regions: ["sinai-red-sea"], photo: "bedouinBread",
     summary: "Three-ingredient bread cooked in seconds on a domed hot plate.",
     background: "In Sinai, bread is cooked over fire — stretched thin on a domed metal plate, or baked under the embers. An upturned wok works at home.",
     serves: 4, servesLabel: "4 large breads", prepMin: 15, cookMin: 10, waitMin: 15, difficulty: "medium", diet: "vegan", allergens: ["gluten"],

@@ -22,7 +22,7 @@ function useSignedIn() {
   return signedIn;
 }
 
-export function SiteHeader() {
+export function SiteHeader({ accounts = false }: { accounts?: boolean }) {
   const path = usePathname();
   const signedIn = useSignedIn();
   const accountLabel = signedIn ? "My account" : "Sign in";
@@ -150,10 +150,12 @@ export function SiteHeader() {
             <Search aria-hidden="true" size={20} strokeWidth={1.75} />
             <span className="sr-only">Search the site</span>
           </button>
-          <Link href="/account" className={`btn btn-sm hidden sm:inline-flex ${overHero ? "btn-outline-light" : "btn-ghost"}`}>
+          {accounts && (
+<Link href="/account" className={`btn btn-sm hidden sm:inline-flex ${overHero ? "btn-outline-light" : "btn-ghost"}`}>
             <UserRound aria-hidden="true" size={16} strokeWidth={1.75} />
             {accountLabel}
           </Link>
+          )}
           <button
             type="button"
             className="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-current/10 xl:hidden"
@@ -189,9 +191,11 @@ export function SiteHeader() {
               </li>
             ))}
           </ul>
-          <Link href="/account" className="btn btn-primary mt-6 w-full sm:hidden">
+          {accounts && (
+<Link href="/account" className="btn btn-primary mt-6 w-full sm:hidden">
             <UserRound aria-hidden="true" size={16} /> {accountLabel}
           </Link>
+          )}
         </nav>
       )}
 

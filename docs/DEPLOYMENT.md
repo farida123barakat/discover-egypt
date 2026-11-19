@@ -1,16 +1,32 @@
 # Deployment guide
 
-> **Not deployed yet.** These are the steps. Nothing here has been run against a real Supabase project or Vercel account.
+The site is **front-end only by default**: no database, no accounts, nothing to pay for. You need a free hosting account and nothing else. Supabase is an optional add-on for later (see [Optional: add a database](#optional-add-a-database-supabase-free-plan)).
 
-## What you need
+## Front-end only (the default)
 
-| Item | Where | Cost |
-| --- | --- | --- |
-| GitHub repository | already set up (private) | free |
-| Supabase project | supabase.com → New project (region: Frankfurt `eu-central-1` is closest to Egypt) | free tier to test, Pro for launch |
-| Vercel account linked to GitHub | vercel.com | Hobby is for non-commercial use; a ministry site needs Pro/Enterprise |
-| Domain name | e.g. a subdomain the Ministry controls | — |
-| SMTP provider for sign-in emails | e.g. Resend, Postmark, SES (Supabase's built-in email is rate-limited) | low |
+| What visitors get | How it works without a database |
+| --- | --- |
+| Every page, map, recipe, hieroglyph lesson, film, quiz and planner | Content ships with the site |
+| Saved trips, favourites, stamps, bucket list, packing list | Saved in the visitor's browser |
+| Memory Hunt album, postcards and the printable passport (PDF) | Saved in the browser, with **Save backup file / Restore from a file** on the album page to move it to another phone |
+| Contact, Ask a local and Share your story | The form checks what's typed, then opens the visitor's own email app with the message ready to send to `CONTACT_EMAIL`. Without `CONTACT_EMAIL` the forms are replaced by a short note |
+
+Switched off without a database (and hidden, so nothing looks broken): sign-in and accounts, the admin dashboard, publishing community answers on the site, the monthly newsletter, and ordering printed passports by post.
+
+### Deploy it (Vercel Hobby, free)
+
+1. Sign in to [vercel.com](https://vercel.com) with GitHub → **Add New → Project** → import `discover-egypt`. Framework: Next.js (detected).
+2. Environment variables, both optional:
+
+   | Name | Value |
+   | --- | --- |
+   | `CONTACT_EMAIL` | The address that contact and community emails should go to, e.g. `hello@your-domain` |
+   | `NEXT_PUBLIC_SITE_URL` | Your address, e.g. `https://discover-egypt.vercel.app` (used for page metadata and share previews) |
+
+   Leave every `SUPABASE` variable unset. The build stops if only some of them are set, so a half-finished database setup can't go live by accident.
+3. **Deploy.** Check the live site: pages and photos load, the header has no "Sign in" link, there is no "Demo mode" notice, and the contact form opens your email app.
+
+Any host that runs Node 22 also works: `npm ci && npm run build && npm start`.
 
 ## 1. Run locally first
 
@@ -31,6 +47,10 @@ npx supabase status         # shows the API URL and the publishable and secret k
 ```
 
 Put the URL and keys in `.env.local` as `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY`, set `DEMO_LOCAL_MODE=false`, and run `npm run dev`. Sign-up and reset emails land in the local mailbox at <http://127.0.0.1:54324>. Run the real-backend browser tests with `npx playwright test -c playwright.supabase.config.ts`.
+
+## Optional: add a database (Supabase, free plan)
+
+Only needed if you want accounts, the admin dashboard, published community answers or postal printing. Steps 2–4 below; skip them for the front-end-only site.
 
 ## 2. Create the database (Supabase, free plan)
 
@@ -56,9 +76,9 @@ The app uses **Supabase**: Postgres with sign-in and file storage built in. The 
 
 What visitors get: create an account with email confirmation, sign in with a password or an emailed link, reset a forgotten password (`/account/new-password`), and sign out. All of it is tested against a real Supabase in CI (`e2e-supabase/`).
 
-## 4. Deploy to Vercel (free Hobby plan)
+## 4. Deploy to Vercel with the database
 
-Hobby is free for personal, non-commercial projects; a ministry or commercial site needs Pro.
+Hobby is free for personal, non-commercial projects.
 
 1. Sign in to [vercel.com](https://vercel.com) with GitHub → **Add New → Project** → import `discover-egypt`. Framework: Next.js (detected).
 2. **Environment variables** (Production and Preview):
@@ -71,7 +91,7 @@ Hobby is free for personal, non-commercial projects; a ministry or commercial si
 | `SUPABASE_SECRET_KEY` | Secret key (`sb_secret_…`) | **no — server only** |
 | `CRON_SECRET` | 16+ random characters (`openssl rand -hex 24`). Vercel Cron sends it to `/api/cron/print-sweep` | **no — server only** |
 
-   Do **not** set `DEMO_LOCAL_MODE`, `LOCAL_ADMIN_PASSWORD` or `SESSION_SECRET` in production. Local demo mode is refused on Vercel production, and **a production build stops with a clear message if the Supabase variables are missing** (set `ALLOW_NO_BACKEND=true` only if you mean to deploy without a database).
+   Do **not** set `DEMO_LOCAL_MODE`, `LOCAL_ADMIN_PASSWORD` or `SESSION_SECRET` in production. Local demo mode is refused on Vercel production, and **the build stops with a clear message if only some of the Supabase variables are set**.
 3. **Deploy.** Then update Supabase's *Site URL* and *Redirect URLs* (step 3.1) to the real address.
 4. Check on the live site:
    - pages, photos and map tiles load; there is **no "Demo mode" notice** in the bottom-left corner (it appears only without a real database);

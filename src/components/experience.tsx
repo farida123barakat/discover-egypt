@@ -368,8 +368,12 @@ export function Soundscapes() {
             type="button"
             aria-pressed={playing === s.mood}
             onClick={() => play(s.mood)}
-            className={`group rounded-2xl p-6 text-left ring-1 transition ${playing === s.mood ? "bg-ivory text-midnight ring-ivory" : "bg-ivory/[0.06] text-ivory ring-ivory/20 hover:bg-ivory/10"}`}
+            className={`group overflow-hidden rounded-2xl text-left ring-1 transition ${playing === s.mood ? "bg-ivory text-midnight ring-ivory" : "bg-ivory/[0.06] text-ivory ring-ivory/20 hover:bg-ivory/10"}`}
           >
+            <span className="relative block aspect-[16/10] overflow-hidden" aria-hidden="true">
+              <Photo k={s.photo} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" className={`absolute inset-0 h-full w-full transition duration-700 ${playing === s.mood ? "scale-105" : "group-hover:scale-105"}`} />
+            </span>
+            <span className="block p-6">
             <span className="flex items-center justify-between">
               <span className={`font-display text-xl ${playing === s.mood ? "text-midnight" : "!text-ivory"}`}>{s.title}</span>
               <span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-full border border-current">
@@ -378,6 +382,7 @@ export function Soundscapes() {
             </span>
             <span className={`mt-2 block text-sm ${playing === s.mood ? "text-midnight/80" : "text-ivory/80"}`}>{s.description}</span>
             <span className="sr-only">{playing === s.mood ? "Playing. Press to stop." : "Press to play"}</span>
+            </span>
           </button>
         ))}
       </div>

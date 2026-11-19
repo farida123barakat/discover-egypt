@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { routes } from "@/content/practical";
 import { BudgetCalculator, CurrencyConverter, PackingList, TripBuilder } from "@/components/planning";
 import { SectionHeading, StatusBadge } from "@/components/ui";
+import { PhotoHero } from "@/components/design";
 
 export const metadata: Metadata = { title: "Plan your journey", description: "Build a day-by-day Egypt itinerary, estimate your budget and convert currency." };
 
@@ -24,13 +25,7 @@ const PREP = [
 export default function PlanPage() {
   return (
     <>
-      <section className="bg-limestone pb-16 pt-36">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <p className="eyebrow">Plan your journey</p>
-          <h1 className="mt-4 max-w-4xl text-5xl md:text-7xl">Your trip, day by day.</h1>
-          <p className="mt-5 max-w-2xl text-lg text-muted">Choose where to go, add the things you want to see, reorder them, and watch your budget update. Saved itineraries can be downloaded as a PDF from My Egypt.</p>
-        </div>
-      </section>
+      <PhotoHero k="nileCruise" eyebrow="Plan your journey" title="Your trip, day by day." intro="Choose where to go, add the things you want to see, reorder them, and watch your budget update. Saved itineraries can be downloaded as a PDF from My Egypt." />
 
       <section id="builder" className="mx-auto max-w-7xl scroll-mt-24 px-5 py-16 md:px-8" aria-label="Smart trip builder">
         <Suspense fallback={<p role="status">Loading trip builder…</p>}>

@@ -82,7 +82,7 @@ export function Timeline() {
             </ul>
           </div>
           <div className="relative aspect-[4/3] overflow-hidden rounded-[1.25rem]">
-            <Photo k={getDestination(era.places[0])?.photo ?? null} className="absolute inset-0 h-full w-full" />
+            <Photo k={era.photo ?? getDestination(era.places[0])?.photo ?? null} className="absolute inset-0 h-full w-full" />
           </div>
         </motion.div>
       </AnimatePresence>

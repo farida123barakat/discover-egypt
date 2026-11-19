@@ -9,6 +9,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Providers } from "@/components/Providers";
 import { BackendNotice } from "@/components/BackendNotice";
+import { backendMode } from "@/lib/env";
 import { publicEnv } from "@/lib/env";
 
 export const metadata: Metadata = {
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { themeColor: "#0f1b2d", width: "device-width", initialScale: 1 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const mode = backendMode();
   // Reading the per-request CSP nonce makes every page render dynamically, so Next.js can stamp the
   // nonce on its scripts. Statically prerendered pages would otherwise be blocked by the strict CSP.
   await headers();
@@ -39,11 +41,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           Skip to main content
         </a>
         <Providers>
-          <SiteHeader />
+          <SiteHeader accounts={mode === "supabase"} />
           <main id="main" tabIndex={-1} className="outline-none">
             {children}
           </main>
-          <SiteFooter />
+          <SiteFooter offline={mode === "none"} />
           <BackendNotice />
         </Providers>
       </body>

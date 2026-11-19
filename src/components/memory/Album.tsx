@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { CloudUpload, Download, FileDown, ImageDown, Pencil, Plus, Printer, RotateCcw, Share2, Trash2 } from "lucide-react";
+import { CloudUpload, Download, FileDown, FileUp, ImageDown, Pencil, Plus, Printer, RotateCcw, Save, Share2, Trash2 } from "lucide-react";
 import { challengeById } from "@/content/hunt";
 import { deleteAllMemories, deleteMemory, refreshMemories, saveMemory, useMemories, type Memory } from "@/lib/memories";
 import { albumPdf, download, fileSlug, placeName, postcardImage, postcardPdf } from "@/lib/postcard-export";
@@ -154,6 +154,8 @@ export function Album() {
           <Achievements />
         </div>
       </section>
+
+      <FileBackup memories={memories} setMsg={setMsg} />
 
       <CloudBackup memories={memories} setMsg={setMsg} />
 
@@ -363,16 +365,92 @@ function PrintTickets({ tickets, onForget }: { tickets: PrintTicket[]; onForget:
   );
 }
 
+/**
+ * Backup as a file the visitor keeps. Works with no accounts or database: save it, then open it
+ * on another phone or after clearing the browser. Restoring adds memories; it never overwrites.
+ */
+function FileBackup({ memories, setMsg }: { memories: Memory[]; setMsg: (m: Msg) => void }) {
+  const [busy, setBusy] = useState(false);
+  const input = useRef<HTMLInputElement>(null);
+
+  async function act(fn: () => Promise<string>) {
+    setBusy(true);
+    try {
+      setMsg({ text: await fn(), tone: "ok" });
+    } catch (e) {
+      const { AlbumFileError } = await import("@/lib/memory-file");
+      setMsg({ text: e instanceof AlbumFileError ? e.message : "Something went wrong. Please try again.", tone: "error" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section aria-labelledby="file-h" className="rounded-2xl bg-limestone p-6 md:p-8" data-testid="file-backup">
+      <h2 id="file-h" className="text-2xl">
+        Keep a backup file
+      </h2>
+      <p className="mt-1 max-w-2xl text-sm text-muted">
+        Your memories live only in this browser. Save them, photos included, to a file on your device. Open that file here on another phone, or after clearing your browser, to bring them back. The file never leaves your device unless you share it.
+      </p>
+      <div className="mt-4 flex flex-wrap gap-3">
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={busy || memories.length === 0}
+          onClick={() =>
+            act(async () => {
+              const { albumFileName, albumToJson } = await import("@/lib/memory-file");
+              download(new Blob([await albumToJson(memories)], { type: "application/json" }), albumFileName());
+              return `Saved ${memories.length} ${memories.length === 1 ? "memory" : "memories"} to a backup file.`;
+            })
+          }
+        >
+          <Save aria-hidden="true" size={16} /> {busy ? "Working…" : "Save backup file"}
+        </button>
+        <button type="button" className="btn btn-outline" disabled={busy} onClick={() => input.current?.click()}>
+          <FileUp aria-hidden="true" size={16} /> Restore from a file
+        </button>
+        <input
+          ref={input}
+          type="file"
+          accept="application/json,.json"
+          className="sr-only"
+          aria-label="Choose an album backup file"
+          tabIndex={-1}
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            e.target.value = "";
+            if (!f) return;
+            void act(async () => {
+              const { MAX_FILE_BYTES, AlbumFileError, albumFromJson } = await import("@/lib/memory-file");
+              if (f.size > MAX_FILE_BYTES) throw new AlbumFileError("That file is too large to be an album backup.");
+              const list = albumFromJson(await f.text());
+              const have = new Set(memories.map((m) => m.id));
+              const fresh = list.filter((m) => !have.has(m.id));
+              for (const m of fresh) await saveMemory(m);
+              await refreshMemories();
+              if (!list.length) throw new AlbumFileError("That backup file has no memories in it.");
+              return fresh.length ? `Restored ${fresh.length} ${fresh.length === 1 ? "memory" : "memories"} from your file.` : "Everything in that file is already in your album.";
+            });
+          }}
+        />
+      </div>
+    </section>
+  );
+}
+
 /** Optional backup to the visitor's own account (Supabase). Hidden behind a clear explanation when accounts aren't set up. */
 function CloudBackup({ memories, setMsg }: { memories: Memory[]; setMsg: (m: Msg) => void }) {
-  const [state, setState] = useState<"checking" | "off" | "signed-out" | "signed-in">("checking");
+  // supabaseConfigured() reads build-time public settings, so server and browser agree on the first render.
+  const [state, setState] = useState<"checking" | "off" | "signed-out" | "signed-in">(() => (supabaseConfigured() ? "checking" : "off"));
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     let alive = true;
     import("@/lib/memory-cloud")
       .then(async ({ cloudUser }) => {
-        if (!supabaseConfigured()) return alive && setState("off");
+        if (!supabaseConfigured()) return alive && setState("off"); // no accounts: the file backup above is the way
         const u = await cloudUser();
         if (alive) setState(u ? "signed-in" : "signed-out");
       })
@@ -393,6 +471,7 @@ function CloudBackup({ memories, setMsg }: { memories: Memory[]; setMsg: (m: Msg
     }
   }
 
+  if (state === "off") return null; // front-end only: no accounts, so only the file backup is offered
   return (
     <section aria-labelledby="cloud-h" className="rounded-2xl bg-limestone p-6 md:p-8">
       <h2 id="cloud-h" className="text-2xl">
@@ -402,7 +481,6 @@ function CloudBackup({ memories, setMsg }: { memories: Memory[]; setMsg: (m: Msg
         Memories live only in this browser, so clearing it or changing phone loses them. A backup copies them, with their photos, to your own account. Only you can see it; our administrators can&rsquo;t.
       </p>
       {state === "checking" && <p className="mt-4 text-sm text-muted">Checking your account…</p>}
-      {state === "off" && <p className="mt-4 text-sm">Accounts aren&rsquo;t switched on for this site yet, so backup isn&rsquo;t available. Download your album PDF to keep a copy.</p>}
       {state === "signed-out" && (
         <p className="mt-4 text-sm">
           <Link href="/account" className="font-semibold text-nile underline underline-offset-4">
