@@ -401,12 +401,13 @@ export async function getRecipes(): Promise<Recipe[]> {
 }
 
 /**
- * Recipes visitors may see. On the live site only approved recipes are public.
- * In local demo mode drafts are shown too (clearly labelled) so the feature can be reviewed.
+ * Recipes visitors may see. With a database, only recipes an editor approved in /admin are public.
+ * Without one there is no admin to approve them, so drafts are shown too, clearly labelled as drafts.
+ * (To mark one reviewed on a front-end-only site, set its `review` in src/content/food.ts.)
  */
 export async function getVisibleRecipes(): Promise<Recipe[]> {
   const all = await getRecipes();
-  return backendMode() === "local" ? all : all.filter((r) => r.review.status === "approved");
+  return backendMode() === "supabase" ? all.filter((r) => r.review.status === "approved") : all;
 }
 
 export async function adminSetRecipeReview(slug: string, status: "draft" | "approved", reviewer: string) {

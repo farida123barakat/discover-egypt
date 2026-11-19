@@ -29,7 +29,16 @@ export default async function TastePage() {
       </section>
 
       <div className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-20">
-        <TasteExplorer recipes={recipes} demoDrafts={backendMode() === "local"} />
+        <TasteExplorer
+          recipes={recipes}
+          draftNote={
+            backendMode() === "local"
+              ? "Demo mode: recipes marked “Draft” are AI-assisted editorial drafts awaiting review. With a database they stay hidden until an editor approves them."
+              : backendMode() === "none"
+                ? "Recipes marked “Draft” were written with AI help from common home-cooking methods and haven’t been checked by a cook yet. Treat them as a starting point."
+                : null
+          }
+        />
 
         <section aria-labelledby="safe-h" className="mt-20 grid gap-8 rounded-[1.5rem] bg-midnight p-8 text-ivory on-dark md:grid-cols-[1fr_1.4fr] md:p-12">
           <div>

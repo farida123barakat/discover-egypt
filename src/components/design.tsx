@@ -139,8 +139,10 @@ export function PhotoHero({
 }) {
   return (
     <section className="on-dark relative isolate overflow-hidden bg-midnight pb-16 pt-36 text-ivory md:pb-20 md:pt-40">
-      <Photo k={k} priority sizes="100vw" className="absolute inset-0 -z-10 h-full w-full opacity-55" />
-      <div className="photo-scrim absolute inset-0 -z-10 bg-gradient-to-t from-midnight via-midnight/70 to-midnight/25" />
+      <Photo k={k} priority sizes="100vw" className="absolute inset-0 -z-10 h-full w-full opacity-90" />
+      {/* Dark where the text sits (left and bottom), clear on the right so the photo shows. */}
+      <div className="photo-scrim absolute inset-0 -z-10 bg-gradient-to-r from-midnight/90 via-midnight/65 to-midnight/5" />
+      <div className="photo-scrim absolute inset-x-0 bottom-0 -z-10 h-1/3 bg-gradient-to-t from-midnight/70 to-transparent" />
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <p className="eyebrow">{eyebrow}</p>
         <h1 className="mt-4 max-w-4xl text-5xl !text-ivory md:text-7xl">{title}</h1>

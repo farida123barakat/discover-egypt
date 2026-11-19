@@ -106,3 +106,12 @@ test("new photo headers credit their photographers", async ({ page }) => {
     await expect(page.locator("main section").first().getByRole("link", { name: /^Photo: .+ · (CC|Public domain)/ })).toBeVisible();
   }
 });
+
+test("recipes show without a database, clearly marked as drafts", async ({ page }) => {
+  await page.goto("/taste");
+  await expect(page.getByText("haven’t been checked by a cook yet", { exact: false })).toBeVisible();
+  await page.goto("/taste/taameya");
+  await expect(page.getByRole("heading", { level: 1, name: /Taameya/ })).toBeVisible();
+  await expect(page.getByText("Draft recipe — not yet reviewed")).toBeVisible();
+  await expect(page.getByText("treat it as a starting point", { exact: false })).toBeVisible();
+});

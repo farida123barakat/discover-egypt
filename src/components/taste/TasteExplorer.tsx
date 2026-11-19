@@ -10,7 +10,7 @@ import { Photo } from "../ui";
 
 type Locate = { state: "idle" | "locating" } | { state: "found"; destination: string; km: number } | { state: "error"; message: string };
 
-export function TasteExplorer({ recipes, demoDrafts }: { recipes: Recipe[]; demoDrafts: boolean }) {
+export function TasteExplorer({ recipes, draftNote }: { recipes: Recipe[]; draftNote: string | null }) {
   const me = useMyEgypt();
   const [picked, setPicked] = useState<RegionId | null>(null);
   const region = regions.find((r) => r.id === (picked ?? me.foodRegion)) ?? regions[0];
@@ -150,10 +150,8 @@ export function TasteExplorer({ recipes, demoDrafts }: { recipes: Recipe[]; demo
             </button>
           </div>
         </div>
-        {demoDrafts && recipes.some((r) => r.review.status === "draft") && (
-          <p className="mt-5 rounded-2xl border border-gold/40 bg-gold/10 p-4 text-sm text-gold-ink">
-            <strong>Demo mode:</strong> recipes marked “Draft” are AI-assisted editorial drafts awaiting review. On the live site they stay hidden until an editor approves them.
-          </p>
+        {draftNote && recipes.some((r) => r.review.status === "draft") && (
+          <p className="mt-5 rounded-2xl border border-gold/40 bg-gold/10 p-4 text-sm text-gold-ink">{draftNote}</p>
         )}
         {recipes.length === 0 ? (
           <p className="mt-8 rounded-2xl bg-limestone p-8 text-center text-muted">Our kitchen editors are reviewing recipes. Check back soon.</p>

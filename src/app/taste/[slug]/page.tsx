@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ChefHat, Clock, Hourglass } from "lucide-react";
 import { regionById, type Recipe } from "@/content/food";
 import { getVisibleRecipes } from "@/lib/store";
+import { backendMode } from "@/lib/env";
 import { DishVisual } from "@/components/taste/TasteExplorer";
 import { RecipeView } from "@/components/taste/RecipeView";
 
@@ -51,7 +52,7 @@ export default async function RecipePage({ params }: { params: Promise<{ slug: s
           </div>
         </header>
 
-        <Provenance r={r} />
+        <Provenance r={r} mode={backendMode()} />
 
         <div className="mt-12">
           <RecipeView r={r} />
@@ -89,13 +90,13 @@ function Meta({ icon: Icon, term, value }: { icon: typeof Clock; term: string; v
   );
 }
 
-function Provenance({ r }: { r: Recipe }) {
+function Provenance({ r, mode }: { r: Recipe; mode: ReturnType<typeof backendMode> }) {
   const draft = r.review.status === "draft";
   return (
     <aside aria-label="About this recipe" className={`mt-10 rounded-2xl border p-5 text-sm ${draft ? "border-gold/50 bg-gold/10" : "border-ok/30 bg-ok/5"}`}>
       <p className="font-semibold text-midnight">{draft ? "Draft recipe — not yet reviewed" : `Reviewed by our editors on ${r.review.lastReviewed}`}</p>
       <p className="mt-1 text-muted">
-        {r.provenance.note} {draft ? "It is shown here in demo mode for review and is hidden on the live site until approved." : ""}
+        {r.provenance.note} {draft ? (mode === "local" ? "It is shown here in demo mode for review; with a database it stays hidden until an editor approves it." : "It hasn’t been checked by a cook yet, so treat it as a starting point.") : ""}
       </p>
       {r.provenance.compare.length > 0 && (
         <p className="mt-2 text-muted">
