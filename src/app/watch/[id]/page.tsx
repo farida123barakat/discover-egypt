@@ -5,6 +5,7 @@ import { ArrowLeft, Clock, ExternalLink, MapPin, TriangleAlert } from "lucide-re
 import { getDestination } from "@/content/destinations";
 import { formatDuration } from "@/content/media";
 import { getVisibleMedia } from "@/lib/store";
+import { backendMode } from "@/lib/env";
 import { MediaPlayer } from "@/components/media/MediaPlayer";
 import { MediaCard } from "@/components/media/MediaCard";
 
@@ -58,7 +59,10 @@ export default async function WatchItemPage({ params }: { params: Promise<{ id: 
           <p role="note" className="mt-8 flex items-start gap-3 rounded-2xl border border-[#8a3f14]/40 bg-[#8a3f14]/10 p-4 text-sm">
             <TriangleAlert aria-hidden="true" size={18} className="mt-0.5 shrink-0 text-[#8a3f14]" />
             <span>
-              <strong>Draft — awaiting editorial review.</strong> You can see this because the site is running in demo mode. It is not shown to visitors until an editor has checked
+              <strong>Draft — awaiting editorial review.</strong>{" "}
+              {backendMode() === "local"
+                ? "You can see this because the site is running in demo mode. With a database it is hidden until an editor has checked"
+                : "An editor hasn’t yet checked"}
               {m.kind === "original" ? " every fact against the sources below." : " that the video plays, its length and its captions."}
             </span>
           </p>

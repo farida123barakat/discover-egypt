@@ -176,11 +176,14 @@ describe("watch & discover", () => {
     status: "published",
     featured: false,
   };
-  it("drafts are hidden when there is no demo backend", async () => {
-    expect((await store.getVisibleMedia()).length).toBeGreaterThan(0);
+  it("without a database every film shows, and drafts stay marked as drafts", async () => {
+    const all = await store.getVisibleMedia();
+    expect(all.length).toBeGreaterThan(0);
     process.env.DEMO_LOCAL_MODE = "false";
     try {
-      expect(await store.getVisibleMedia()).toHaveLength(0);
+      const visible = await store.getVisibleMedia();
+      expect(visible).toHaveLength(all.length);
+      expect(visible.some((m) => m.status === "draft")).toBe(true);
     } finally {
       process.env.DEMO_LOCAL_MODE = "true";
     }

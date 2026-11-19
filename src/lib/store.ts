@@ -544,12 +544,12 @@ export async function getMediaAll(): Promise<MediaItem[]> {
 }
 
 /**
- * What visitors see. On the live site only published items; in local demo mode drafts are
- * shown too, clearly labelled, so the feature can be reviewed before anything is approved.
+ * What visitors see. With a database, only items an editor published in /admin. Without one there
+ * is no admin to publish them, so drafts are shown too, each clearly labelled as a draft.
  */
 export async function getVisibleMedia(): Promise<MediaItem[]> {
   const all = await getMediaAll();
-  const list = backendMode() === "local" ? all : all.filter((m) => m.status === "published");
+  const list = backendMode() === "supabase" ? all.filter((m) => m.status === "published") : all;
   return list.sort((a, b) => Number(b.featured) - Number(a.featured));
 }
 
